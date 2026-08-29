@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { getAccessToken } from '../supabaseClient'
 import { useToast } from '../contexts/ToastContext'
 import {
   Brain, ChevronRight, CheckCircle2, XCircle, Award,
@@ -28,7 +28,7 @@ const SkillQuiz = ({ isOpen, onClose, skills: rawSkills = [] }) => {
   const startQuiz = async () => {
     setStage('loading')
     try {
-      const token = await auth.currentUser.getIdToken()
+      const token = await getAccessToken()
       const response = await axios.post(`${API_URL}/api/quiz/generate`, {
         skills: skills
       }, {
@@ -63,7 +63,7 @@ const SkillQuiz = ({ isOpen, onClose, skills: rawSkills = [] }) => {
   const submitQuiz = async () => {
     setIsSubmitting(true)
     try {
-      const token = await auth.currentUser.getIdToken()
+      const token = await getAccessToken()
       const response = await axios.post(`${API_URL}/api/quiz/evaluate`, {
         questions: questions,
         answers: answers

@@ -39,30 +39,36 @@ function App() {
   }, [])
 
   useEffect(() => {
-    let unsubscribe = null
+    let subscription = null
     let cancelled = false
 
-    import('./firebase')
-      .then(({ auth }) => {
+    import('./supabaseClient')
+      .then(({ supabase }) => {
         if (cancelled) return
-        return import('firebase/auth').then(({ onAuthStateChanged }) => {
-          if (cancelled) return
-          unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            if (!cancelled) {
-              setUser(currentUser)
-              setLoading(false)
-            }
-          })
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!cancelled) {
+            setUser(session?.user ?? null)
+            setLoading(false)
+          }
         })
+
+        const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!cancelled) {
+            setUser(session?.user ?? null)
+            setLoading(false)
+          }
+        })
+        subscription = data.subscription
       })
       .catch(() => {
-        // Firebase not configured or invalid — app still works for admin routes
+        // Supabase not configured — app still works for admin routes
         if (!cancelled) setLoading(false)
       })
 
     return () => {
       cancelled = true
-      if (unsubscribe) unsubscribe()
+      if (subscription) subscription.unsubscribe()
     }
   }, [])
 
@@ -75,10 +81,10 @@ function App() {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        {/* Admin routes — no Firebase dependency */}
+        {/* Admin routes — no Supabase dependency */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Student routes — require Firebase auth OR admin session */}
+        {/* Student routes — require Supabase auth OR admin session */}
         <Route
           path="/login"
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignIn />}

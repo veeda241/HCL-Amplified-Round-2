@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { getAccessToken } from '../supabaseClient';
 import axios from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -266,14 +266,15 @@ const ProfileSetup = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const user = auth.currentUser;
-      if (!user) {
-        alert('Please sign in to save your profile');
-        navigate('/signin');
+      const idToken = await getAccessToken();
+      console.log('[ProfileSetup] Access token obtained:', idToken ? 'YES' : 'NULL');
+
+      if (!idToken) {
+        console.error('[ProfileSetup] No access token — user session may have expired');
+        alert('Session expired. Please sign in again.');
+        navigate('/login');
         return;
       }
-
-      const idToken = await user.getIdToken();
 
       const profileData = {
         name: formData.name,
@@ -287,7 +288,9 @@ const ProfileSetup = () => {
         clarity_score: clarityResult?.clarity_score || 50,
       };
 
-      await axios.post(
+      console.log('[ProfileSetup] Submitting profile:', profileData);
+
+      const response = await axios.post(
         `${API_URL}/api/students/profile`,
         profileData,
         {
@@ -298,9 +301,14 @@ const ProfileSetup = () => {
         }
       );
 
+      console.log('[ProfileSetup] Profile saved successfully:', response.data);
       navigate('/dashboard');
     } catch (error) {
-      alert('Failed to save profile. Please try again.');
+      console.error('[ProfileSetup] Submit error:', error);
+      const detail = error.response?.data?.detail || error.message || 'Unknown error';
+      console.error('[ProfileSetup] Error detail:', detail);
+      console.error('[ProfileSetup] Status:', error.response?.status);
+      alert(`Failed to save profile: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }

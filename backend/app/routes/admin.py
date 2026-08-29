@@ -23,7 +23,7 @@ class AdminLoginResponse(BaseModel):
 
 @router.post("/login")
 def admin_login(request: AdminLoginRequest):
-    """Admin login with email/password (no Firebase needed)"""
+    """Admin login with email/password (no Supabase needed)"""
     admin_email = os.getenv("ADMIN_EMAIL", "admin@skillroute.com")
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
 
@@ -44,7 +44,7 @@ def admin_login(request: AdminLoginRequest):
 
 @router.get("/verify")
 def verify_admin(authorization: str = Header(...)):
-    """Verify admin session (no Firebase needed)"""
+    """Verify admin session (no Supabase needed)"""
     token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else ""
     if not verify_admin_session_token(token):
         raise HTTPException(status_code=401, detail="Invalid admin session")
@@ -60,16 +60,16 @@ def get_all_users(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid admin session")
 
     try:
-        # Lazy import to avoid Firebase init at startup
-        from app.services.storage_service import _use_firebase
-        if _use_firebase():
-            from app.utils.firebase import db
-            users_ref = db.collection('students')
-            docs = users_ref.stream()
+        # Lazy import to avoid Supabase init at startup
+        from app.services.storage_service import _use_supabase
+        if _use_supabase():
+            from app.utils.supabase_client import get_admin_client
+            db = get_admin_client()
+            res = db.table("profiles").select("*").execute()
             users = []
-            for doc in docs:
-                user_data = doc.to_dict()
-                user_data['id'] = doc.id
+            for row in res.data:
+                user_data = dict(row.get("profile") or {})
+                user_data['id'] = row['user_id']
                 users.append(user_data)
             return {"users": users, "total": len(users)}
         else:
@@ -98,12 +98,13 @@ def get_admin_stats(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid admin session")
 
     try:
-        from app.services.storage_service import _use_firebase
-        if _use_firebase():
-            from app.utils.firebase import db
-            users_count = len(list(db.collection('students').stream()))
-            roadmaps_count = len(list(db.collection('roadmaps').stream()))
-            quizzes_count = len(list(db.collection('quizzes').stream()))
+        from app.services.storage_service import _use_supabase
+        if _use_supabase():
+            from app.utils.supabase_client import get_admin_client
+            db = get_admin_client()
+            users_count = len(db.table("profiles").select("user_id").execute().data)
+            roadmaps_count = len(db.table("active_roadmaps").select("user_id").execute().data)
+            quizzes_count = 0  # quiz results are not persisted
         else:
             # Local storage stats
             import os

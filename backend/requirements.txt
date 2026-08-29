@@ -3,4 +3,4 @@ uvicorn[standard]
 python-dotenv
 pydantic
 groq
-firebase-admin
+supabase

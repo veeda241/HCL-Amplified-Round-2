@@ -6,10 +6,21 @@ import { Card, CardContent } from './ui/card';
 const ProgressTracker = ({ progress, phases }) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const percentage = progress && progress.total_phases > 0
+    ? Math.round((progress.completed_phases / progress.total_phases) * 100)
+    : 0;
+
+  useEffect(() => {
+    if (percentage === 100) {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [percentage]);
+
   if (!progress) return null;
 
   const { completed_phases, total_phases, streak_days, last_activity_date } = progress;
-  const percentage = total_phases > 0 ? Math.round((completed_phases / total_phases) * 100) : 0;
 
   const getLearningPace = () => {
     if (!last_activity_date) return { label: 'Just Started', color: 'blue', icon: Zap };
@@ -30,13 +41,6 @@ const ProgressTracker = ({ progress, phases }) => {
     const phaseIndex = phases.indexOf(currentPhase);
     return index === phaseIndex + 1;
   });
-
-  useEffect(() => {
-    if (percentage === 100) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [percentage]);
 
   const getPaceColor = (color) => {
     const colors = {

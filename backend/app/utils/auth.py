@@ -1,4 +1,4 @@
-from firebase_admin import auth
+from app.utils.supabase_client import get_anon_client
 from fastapi import Header, HTTPException
 import hashlib
 import time
@@ -60,11 +60,11 @@ def verify_admin_session_token(token: str) -> bool:
 
 # ---------- Unified token verifier ----------
 
-def verify_token(authorization: str = Header(...)) -> str:
-    """Accept either a Firebase ID token or an admin session token.
+def verify_supabase_token(authorization: str = Header(...)) -> str:
+    """Accept either a Supabase access token or an admin session token.
 
     Returns a user-id string:
-      - Firebase UID for Firebase tokens
+      - Supabase user UUID for Supabase auth tokens
       - ADMIN_USER_ID ("admin_user") for admin session tokens
     """
     if not authorization.startswith("Bearer "):
@@ -76,13 +76,12 @@ def verify_token(authorization: str = Header(...)) -> str:
     if verify_admin_session_token(token):
         return ADMIN_USER_ID
 
-    # 2. Fall back to Firebase
+    # 2. Fall back to Supabase
     try:
-        decoded_token = auth.verify_id_token(token)
-        return decoded_token["uid"]
+        response = get_anon_client().auth.get_user(token)
+        if not response or not response.user:
+            raise ValueError("No user in response")
+        return response.user.id
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-
-# Keep the old name so existing imports don't break
-verify_firebase_token = verify_token

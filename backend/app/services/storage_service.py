@@ -5,33 +5,32 @@ import os
 
 from app.services import local_storage as _local
 
-# Determine Firebase availability
-# If FIREBASE_PROJECT_ID env var is not set, skip Firebase entirely
-_firebase_available = None  # None = untested, True = working, False = broken
+# Determine Supabase availability
+_supabase_available = None  # None = untested, True = working, False = broken
 
-def _init_firebase():
-    """Lazily initialize and test Firebase. Returns True if working."""
-    global _firebase_available
 
-    # If no Firebase env vars, don't even try
-    if not os.getenv("FIREBASE_PROJECT_ID"):
-        print("INFO: No FIREBASE_PROJECT_ID set — using local file storage")
-        _firebase_available = False
+def _init_supabase():
+    """Lazily initialize and test Supabase. Returns True if working."""
+    global _supabase_available
+
+    if not os.getenv("SUPABASE_URL") or not os.getenv("SUPABASE_SERVICE_ROLE_KEY"):
+        print("INFO: No SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY set — using local file storage")
+        _supabase_available = False
         return False
 
     try:
-        from app.utils.firebase import db
+        from app.utils.supabase_client import get_admin_client
+        client = get_admin_client()
     except Exception as e:
-        print(f"WARNING: Firebase import failed ({e}), using local file storage")
-        _firebase_available = False
+        print(f"WARNING: Supabase client init failed ({e}), using local file storage")
+        _supabase_available = False
         return False
 
-    # Test connectivity with timeout
     result = [False]
 
     def _check():
         try:
-            db.collection("__health_check__").limit(1).get()
+            client.table("profiles").select("user_id").limit(1).execute()
             result[0] = True
         except Exception:
             result[0] = False
@@ -40,58 +39,57 @@ def _init_firebase():
     t.start()
     t.join(timeout=5)
     if t.is_alive():
-        print("WARNING: Firebase health check timed out, using local file storage")
-        _firebase_available = False
+        print("WARNING: Supabase health check timed out, using local file storage")
+        _supabase_available = False
         return False
 
     if not result[0]:
-        print("WARNING: Firebase health check failed, using local file storage")
-        _firebase_available = False
+        print("WARNING: Supabase health check failed, using local file storage")
+        _supabase_available = False
         return False
 
-    _firebase_available = True
+    _supabase_available = True
     return True
 
 
-def _use_firebase():
-    global _firebase_available
-    if _firebase_available is None:
-        return _init_firebase()
-    return _firebase_available
+def _use_supabase():
+    global _supabase_available
+    if _supabase_available is None:
+        return _init_supabase()
+    return _supabase_available
 
 
-def _firebase_failed():
-    global _firebase_available
-    _firebase_available = False
-    print("WARNING: Firebase disabled for this session, using local file storage")
+def _supabase_failed():
+    global _supabase_available
+    _supabase_available = False
+    print("WARNING: Supabase disabled for this session, using local file storage")
 
 
 def _get_db():
-    from app.utils.firebase import db
-    return db
+    from app.utils.supabase_client import get_admin_client
+    return get_admin_client()
 
 
 def save_career_analysis(user_id: str, profile: dict, career_decision: dict, roadmap: dict):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            data = {
+            db.table("career_analyses").insert({
+                "user_id": user_id,
                 "profile": profile,
                 "career_decision": career_decision,
                 "roadmap": roadmap,
-                "created_at": datetime.utcnow()
-            }
-            db.collection("users").document(user_id).collection("analyses").add(data)
+            }).execute()
             save_active_roadmap(user_id, career_decision, roadmap)
             return True
         except Exception as e:
-            print(f"WARNING: Firebase save failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase save failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.save_career_analysis(user_id, profile, career_decision, roadmap)
 
 
 def save_active_roadmap(user_id: str, career_decision: dict, roadmap: dict, preserve_progress: bool = False):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
             existing_data = None
@@ -133,43 +131,43 @@ def save_active_roadmap(user_id: str, career_decision: dict, roadmap: dict, pres
                     "last_activity_date": None
                 }
 
-            data = {
+            db.table("active_roadmaps").upsert({
+                "user_id": user_id,
                 "career_decision": career_decision,
                 "learning_roadmap": roadmap,
                 "progress": progress_data,
-                "updated_at": datetime.utcnow()
-            }
-            db.collection("users").document(user_id).collection("active_roadmap").document("current").set(data)
+                "updated_at": datetime.utcnow().isoformat(),
+            }).execute()
             return True
         except Exception as e:
-            print(f"WARNING: Firebase save failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase save failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.save_active_roadmap(user_id, career_decision, roadmap, preserve_progress)
 
 
 def get_active_roadmap(user_id: str):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            doc = db.collection("users").document(user_id).collection("active_roadmap").document("current").get()
-            if doc.exists:
-                return doc.to_dict()
+            res = db.table("active_roadmaps").select("*").eq("user_id", user_id).limit(1).execute()
+            if res.data:
+                return res.data[0]
+            return None
         except Exception as e:
-            print(f"WARNING: Firebase read failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase read failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.get_active_roadmap(user_id)
 
 
 def update_phase_status(user_id: str, phase_index: int, status: str):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            ref = db.collection("users").document(user_id).collection("active_roadmap").document("current")
-            doc = ref.get()
-            if not doc.exists:
+            res = db.table("active_roadmaps").select("*").eq("user_id", user_id).limit(1).execute()
+            if not res.data:
                 return False
 
-            data = doc.to_dict()
+            data = res.data[0]
             roadmap = data.get("learning_roadmap", {}).get("roadmap", [])
 
             if 0 <= phase_index < len(roadmap):
@@ -180,16 +178,16 @@ def update_phase_status(user_id: str, phase_index: int, status: str):
                     data["progress"]["completed_phases"] = completed_count
                     update_streak(data["progress"])
 
-                ref.update({
-                    "learning_roadmap.roadmap": roadmap,
+                db.table("active_roadmaps").update({
+                    "learning_roadmap": data["learning_roadmap"],
                     "progress": data["progress"],
-                    "updated_at": datetime.utcnow()
-                })
+                    "updated_at": datetime.utcnow().isoformat(),
+                }).eq("user_id", user_id).execute()
                 return True
             return False
         except Exception as e:
-            print(f"WARNING: Firebase update failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase update failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.update_phase_status(user_id, phase_index, status)
 
 
@@ -213,48 +211,48 @@ def update_streak(progress_data: dict):
 
 
 def get_student_profile(user_id: str):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            doc = db.collection("users").document(user_id).get()
-            if doc.exists:
-                data = doc.to_dict()
-                return data.get("profile")
+            res = db.table("profiles").select("profile").eq("user_id", user_id).limit(1).execute()
+            if res.data:
+                return res.data[0].get("profile")
+            return None
         except Exception as e:
-            print(f"WARNING: Firebase read failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase read failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.get_student_profile(user_id)
 
 
 def save_student_profile(user_id: str, profile: dict):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            print(f"Saving to Firestore for user: {user_id}")
-            db.collection("users").document(user_id).set({
+            print(f"Saving to Supabase for user: {user_id}")
+            db.table("profiles").upsert({
+                "user_id": user_id,
                 "profile": profile,
-                "updated_at": datetime.utcnow()
-            }, merge=True)
-            print(f"Successfully saved to Firestore for user: {user_id}")
+                "updated_at": datetime.utcnow().isoformat(),
+            }).execute()
+            print(f"Successfully saved to Supabase for user: {user_id}")
             return True
         except Exception as e:
-            print(f"WARNING: Firebase save failed ({e}), switching to local storage")
+            print(f"WARNING: Supabase save failed ({e}), switching to local storage")
             traceback.print_exc()
-            _firebase_failed()
+            _supabase_failed()
     return _local.save_student_profile(user_id, profile)
 
 
 def delete_active_roadmap(user_id: str):
-    if _use_firebase():
+    if _use_supabase():
         try:
             db = _get_db()
-            ref = db.collection("users").document(user_id).collection("active_roadmap").document("current")
-            doc = ref.get()
-            if doc.exists:
-                ref.delete()
+            res = db.table("active_roadmaps").select("user_id").eq("user_id", user_id).limit(1).execute()
+            if res.data:
+                db.table("active_roadmaps").delete().eq("user_id", user_id).execute()
                 return True
             return False
         except Exception as e:
-            print(f"WARNING: Firebase delete failed ({e}), switching to local storage")
-            _firebase_failed()
+            print(f"WARNING: Supabase delete failed ({e}), switching to local storage")
+            _supabase_failed()
     return _local.delete_active_roadmap(user_id)

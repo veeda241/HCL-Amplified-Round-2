@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Linkedin, Compass, Moon, Sun } from 'lucide-react';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './card';
 import { Input } from './input';
 import { Button } from './button';
 import { Label } from './label';
 import { useTheme } from '../../contexts/ThemeContext';
-import axios from 'axios';
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48">
@@ -30,31 +28,6 @@ export const SignUp = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  const checkProfileCompletion = async (user) => {
-    try {
-      const idToken = await user.getIdToken();
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-      const response = await axios.get(
-        `${API_URL}/api/students/profile`,
-        {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.data && response.data.name && response.data.education) {
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Error checking profile:', error);
-      return false;
-    }
-  };
-
   const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
@@ -72,13 +45,19 @@ export const SignUp = () => {
     setLoading(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      navigate('/profile-setup');
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (signUpError) throw signUpError;
+
+      if (data.session) {
+        navigate('/profile-setup');
+      } else {
+        setError('Account created! Please check your email to confirm before signing in.');
+      }
     } catch (err) {
-      if (err.code === 'auth/email-already-in-use') {
+      if (err.message?.toLowerCase().includes('already registered')) {
         setError('Email already in use. Please sign in instead.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password is too weak. Please use a stronger password.');
+      } else if (err.message?.toLowerCase().includes('password')) {
+        setError(err.message);
       } else {
         setError(err.message || 'Failed to create account. Please try again.');
       }
@@ -92,20 +71,14 @@ export const SignUp = () => {
     setLoading(true);
 
     try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      const hasProfile = await checkProfileCompletion(user);
-
-      if (hasProfile) {
-        navigate('/dashboard');
-      } else {
-        navigate('/profile-setup');
-      }
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/profile-setup` }
+      });
+      if (oauthError) throw oauthError;
+      // Browser is redirected to Google; navigation happens on return.
     } catch (err) {
       setError(err.message || 'Failed to sign up with Google.');
-    } finally {
       setLoading(false);
     }
   };

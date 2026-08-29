@@ -1,33 +1,53 @@
-# Python
+# Python Bytecode & Cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environments
 venv/
 env/
 ENV/
-.venv
+.venv/
 
-# Environment variables
+# Environment Variables & Secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+firebase_key*.json
+*firebase*.json
+serviceAccountKey.json
 
-# Firebase
-firebase_key.json
+# Local Runtime Data & Sessions
+local_data/
+admin_sessions.json
+app/admin_sessions.json
 
-# IDE
+# Database & SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# IDE & OS
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-logs/

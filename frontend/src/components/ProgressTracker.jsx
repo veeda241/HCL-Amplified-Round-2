@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Flame, Trophy, Calendar, Zap, TrendingUp, Gauge } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
@@ -6,10 +6,18 @@ import { Card, CardContent } from './ui/card';
 const ProgressTracker = ({ progress, phases }) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
+  const percentage = progress && progress.total_phases > 0 ? Math.round((progress.completed_phases / progress.total_phases) * 100) : 0;
+
+  useEffect(() => {
+    if (percentage === 100) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
+    }
+  }, [percentage]);
+
   if (!progress) return null;
 
-  const { completed_phases, total_phases, streak_days, last_activity_date } = progress;
-  const percentage = total_phases > 0 ? Math.round((completed_phases / total_phases) * 100) : 0;
+  const { completed_phases, streak_days, last_activity_date } = progress;
 
   const getLearningPace = () => {
     if (!last_activity_date) return { label: 'Just Started', color: 'blue', icon: Zap };
@@ -26,18 +34,13 @@ const ProgressTracker = ({ progress, phases }) => {
   const PaceIcon = pace.icon;
 
   const currentPhase = phases?.find(phase => phase.status !== 'completed');
+  // eslint-disable-next-line no-unused-vars
   const nextPhase = phases?.find((phase, index) => {
     const phaseIndex = phases.indexOf(currentPhase);
     return index === phaseIndex + 1;
   });
 
-  useEffect(() => {
-    if (percentage === 100) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
-  }, [percentage]);
-
+  // eslint-disable-next-line no-unused-vars
   const getPaceColor = (color) => {
     const colors = {
       green: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-500/20',

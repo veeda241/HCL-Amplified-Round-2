@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import axios from 'axios'
 import { auth } from '../firebase'
 import {
@@ -13,7 +13,7 @@ const JobListings = ({ career }) => {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [, setSearchTerm] = useState('')
 
   const fetchJobs = async (searchCareer) => {
     if (!searchCareer) return
@@ -39,6 +39,7 @@ const JobListings = ({ career }) => {
     if (career) {
       fetchJobs(career)
     }
+
   }, [career])
 
   const formatDate = (dateStr) => {
@@ -74,7 +75,7 @@ const JobListings = ({ career }) => {
                 Live Job Openings
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Real-time from Remotive • Matching "{career}"
+                Real-time from Remotive • Matching &quot;{career}&quot;
               </p>
             </div>
           </div>

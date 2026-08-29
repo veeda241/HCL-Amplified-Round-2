@@ -75,7 +75,7 @@ def get_all_users(authorization: str = Header(...)):
         else:
             # Local storage fallback
             from app.services import local_storage as _local
-            import json
+
             data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "local_data")
             users = []
             if os.path.exists(data_dir):

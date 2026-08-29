@@ -5,7 +5,6 @@ import {
     BarChart3,
     CheckCircle2,
     Map,
-    ChevronRight,
     Brain
 } from 'lucide-react';
 

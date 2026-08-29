@@ -36,7 +36,7 @@ import {
   Clock,
   Zap,
   Target,
-  HelpCircle,
+
   Gauge,
   Rocket
 } from 'lucide-react';

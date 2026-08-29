@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lightbulb, Target, TrendingUp, CheckCircle2, XCircle, Briefcase, MapPin, Tag } from 'lucide-react';
+import { X, Lightbulb, Target, TrendingUp, CheckCircle2, XCircle, Briefcase, Tag } from 'lucide-react';
 import AgentDecisionTrace from './AgentDecisionTrace';
 
 const DecisionInsightsModal = ({ isOpen, onClose, careerDecision }) => {

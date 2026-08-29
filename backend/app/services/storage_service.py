@@ -54,7 +54,7 @@ def _init_firebase():
 
 
 def _use_firebase():
-    global _firebase_available
+
     if _firebase_available is None:
         return _init_firebase()
     return _firebase_available

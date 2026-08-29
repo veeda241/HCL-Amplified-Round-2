@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
@@ -140,6 +140,8 @@ const Profile = () => {
 
   useEffect(() => {
     loadProfile();
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadProfile = async () => {
@@ -270,7 +272,7 @@ const Profile = () => {
         learning_pace: formData.learning_pace
       };
 
-      const response = await axios.post(`${API_URL}/api/students/profile`, profileData, {
+      await axios.post(`${API_URL}/api/students/profile`, profileData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

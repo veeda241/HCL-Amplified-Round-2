@@ -102,16 +102,14 @@ def get_admin_stats(authorization: str = Header(...)):
         if _use_supabase():
             from app.utils.supabase_client import get_admin_client
             db = get_admin_client()
-            users_count = len(db.table("profiles").select("user_id").execute().data)
-            roadmaps_count = len(db.table("active_roadmaps").select("user_id").execute().data)
-            quizzes_count = 0  # quiz results are not persisted
+            users_count = db.table("profiles").select("*", count="exact", head=True).execute().count
+            roadmaps_count = db.table("active_roadmaps").select("*", count="exact", head=True).execute().count
         else:
             # Local storage stats
             import os
             data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "local_data")
             users_count = 0
             roadmaps_count = 0
-            quizzes_count = 0
             if os.path.exists(data_dir):
                 for user_id in os.listdir(data_dir):
                     user_dir = os.path.join(data_dir, user_id)
@@ -123,7 +121,10 @@ def get_admin_stats(authorization: str = Header(...)):
         return {
             "total_users": users_count,
             "total_roadmaps": roadmaps_count,
-            "total_quizzes": quizzes_count,
+            # Quiz results aren't persisted anywhere yet, so this is reported
+            # as untracked rather than a misleading hardcoded 0.
+            "total_quizzes": None,
+            "quizzes_tracked": False,
             "status": "active"
         }
     except Exception as e:

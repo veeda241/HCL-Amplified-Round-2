@@ -70,20 +70,86 @@ def _get_db():
     return get_admin_client()
 
 
+def _save_active_roadmap_to_supabase(db, user_id: str, career_decision: dict, roadmap: dict, preserve_progress: bool = False):
+    """Writes the active roadmap to Supabase. Raises on failure — no fallback,
+    so callers that need to keep multiple writes on the same backend (e.g.
+    save_career_analysis) can catch once and fall back to local storage
+    together, instead of ending up split across two backends."""
+    existing_data = None
+    if preserve_progress:
+        existing_data = get_active_roadmap(user_id)
+
+    if "roadmap" in roadmap:
+        for idx, phase in enumerate(roadmap["roadmap"]):
+            if existing_data and preserve_progress:
+                old_roadmap = existing_data.get("learning_roadmap", {}).get("roadmap", [])
+                if idx < len(old_roadmap):
+                    old_phase = old_roadmap[idx]
+                    if old_phase.get("status") == "completed":
+                        phase["status"] = "completed"
+                        phase["completed_at"] = old_phase.get("completed_at")
+                    else:
+                        phase["status"] = "pending"
+                        phase["completed_at"] = None
+                else:
+                    phase["status"] = "pending"
+                    phase["completed_at"] = None
+            else:
+                phase["status"] = "pending"
+                phase["completed_at"] = None
+
+    if existing_data and preserve_progress:
+        completed_count = sum(1 for p in roadmap.get("roadmap", []) if p.get("status") == "completed")
+        progress_data = {
+            "completed_phases": completed_count,
+            "total_phases": len(roadmap.get("roadmap", [])),
+            "streak_days": existing_data.get("progress", {}).get("streak_days", 0),
+            "last_activity_date": existing_data.get("progress", {}).get("last_activity_date")
+        }
+    else:
+        progress_data = {
+            "completed_phases": 0,
+            "total_phases": len(roadmap.get("roadmap", [])),
+            "streak_days": 0,
+            "last_activity_date": None
+        }
+
+    db.table("active_roadmaps").upsert({
+        "user_id": user_id,
+        "career_decision": career_decision,
+        "learning_roadmap": roadmap,
+        "progress": progress_data,
+        "updated_at": datetime.utcnow().isoformat(),
+    }).execute()
+
+
 def save_career_analysis(user_id: str, profile: dict, career_decision: dict, roadmap: dict):
     if _use_supabase():
+        db = _get_db()
+        inserted_id = None
         try:
-            db = _get_db()
-            db.table("career_analyses").insert({
+            insert_res = db.table("career_analyses").insert({
                 "user_id": user_id,
                 "profile": profile,
                 "career_decision": career_decision,
                 "roadmap": roadmap,
             }).execute()
-            save_active_roadmap(user_id, career_decision, roadmap)
+            inserted_id = insert_res.data[0]["id"] if insert_res.data else None
+
+            # Same backend, same try block: if this second write fails, the
+            # except below sends BOTH pieces to local storage together
+            # instead of leaving the analysis in Supabase and the roadmap local.
+            _save_active_roadmap_to_supabase(db, user_id, career_decision, roadmap)
             return True
         except Exception as e:
             print(f"WARNING: Supabase save failed ({e}), switching to local storage")
+            if inserted_id:
+                # Undo the half-completed write so it doesn't linger as an
+                # orphaned duplicate once the local fallback below runs.
+                try:
+                    db.table("career_analyses").delete().eq("id", inserted_id).execute()
+                except Exception as cleanup_err:
+                    print(f"WARNING: Failed to roll back orphaned career_analyses row {inserted_id}: {cleanup_err}")
             _supabase_failed()
     return _local.save_career_analysis(user_id, profile, career_decision, roadmap)
 
@@ -92,52 +158,7 @@ def save_active_roadmap(user_id: str, career_decision: dict, roadmap: dict, pres
     if _use_supabase():
         try:
             db = _get_db()
-            existing_data = None
-            if preserve_progress:
-                existing_data = get_active_roadmap(user_id)
-
-            if "roadmap" in roadmap:
-                for idx, phase in enumerate(roadmap["roadmap"]):
-                    if existing_data and preserve_progress:
-                        old_roadmap = existing_data.get("learning_roadmap", {}).get("roadmap", [])
-                        if idx < len(old_roadmap):
-                            old_phase = old_roadmap[idx]
-                            if old_phase.get("status") == "completed":
-                                phase["status"] = "completed"
-                                phase["completed_at"] = old_phase.get("completed_at")
-                            else:
-                                phase["status"] = "pending"
-                                phase["completed_at"] = None
-                        else:
-                            phase["status"] = "pending"
-                            phase["completed_at"] = None
-                    else:
-                        phase["status"] = "pending"
-                        phase["completed_at"] = None
-
-            if existing_data and preserve_progress:
-                completed_count = sum(1 for p in roadmap.get("roadmap", []) if p.get("status") == "completed")
-                progress_data = {
-                    "completed_phases": completed_count,
-                    "total_phases": len(roadmap.get("roadmap", [])),
-                    "streak_days": existing_data.get("progress", {}).get("streak_days", 0),
-                    "last_activity_date": existing_data.get("progress", {}).get("last_activity_date")
-                }
-            else:
-                progress_data = {
-                    "completed_phases": 0,
-                    "total_phases": len(roadmap.get("roadmap", [])),
-                    "streak_days": 0,
-                    "last_activity_date": None
-                }
-
-            db.table("active_roadmaps").upsert({
-                "user_id": user_id,
-                "career_decision": career_decision,
-                "learning_roadmap": roadmap,
-                "progress": progress_data,
-                "updated_at": datetime.utcnow().isoformat(),
-            }).execute()
+            _save_active_roadmap_to_supabase(db, user_id, career_decision, roadmap, preserve_progress)
             return True
         except Exception as e:
             print(f"WARNING: Supabase save failed ({e}), switching to local storage")

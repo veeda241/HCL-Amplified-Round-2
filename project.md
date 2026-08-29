@@ -77,7 +77,7 @@ graph TD
 1. **Groq LPU Inference Engine:** Ultra-low latency LLM inference using Groq's high-speed chips, ensuring instantaneous roadmap synthesis (~1.5s vs 15s on typical APIs).
 2. **Transparent Decision Trace:** Unlike black-box LLMs, SkillRoute returns step-by-step reasoning (`Analysis -> Paths Evaluated -> Final Decision Tradeoffs -> Alternative Paths`).
 3. **Resilient JSON Recovery:** Implements automated bracket repairing (`_repair_json`) and fallback resource injection (`_ensure_resources`), ensuring 100% zero-crash uptime during live judge evaluations.
-4. **Hybrid Storage Layer:** Dual persistence architecture supporting Firebase Cloud Firestore with automatic local JSON fallback for offline/isolated demo environments.
+4. **Hybrid Storage Layer:** Dual persistence architecture supporting Supabase (PostgreSQL) with automatic local JSON fallback for offline/isolated demo environments.
 
 ---
 
@@ -100,9 +100,9 @@ graph TD
        │                       │
 ┌──────▼───────────────┐ ┌─────▼──────────────────────────────┐
 │  AI & MARKET ENGINES │ │        PERSISTENCE & STORAGE       │
-│ • Groq Async LLM API │ │ • Firebase Firestore (Cloud)       │
+│ • Groq Async LLM API │ │ • Supabase PostgreSQL (Cloud)      │
 │ • Remotive Live Jobs │ │ • Local JSON Fallback (Zero Downtime)│
-│ • Dynamic Quiz Engine│ │ • Firebase Auth / Client Session   │
+│ • Dynamic Quiz Engine│ │ • Supabase Auth / Client Session   │
 └──────────────────────┘ └────────────────────────────────────┘
 ```
 
@@ -204,7 +204,7 @@ SkillRoute is not a one-time generator; it is an **adaptive feedback loop**:
 > **Winning Answer:** *"We built a multi-stage validation layer in Python. The LLM is strictly prompted for authoritative domains, and backend post-processing (`_ensure_resources`) scans every generated milestone. If a URL is empty or malformed, our fallback engine automatically injects verified, curated tutorials from freeCodeCamp, YouTube, and MDN."*
 
 ### Q4: "How does this platform scale for thousands of students?"
-> **Winning Answer:** *"The frontend is a lightweight SPA hosted on edge CDN. The backend is built with asynchronous FastAPI, handling high-concurrency I/O. The LLM workload is offloaded to Groq's high-throughput LPU cloud, and the database utilizes Firebase Firestore's automatic horizontal scaling."*
+> **Winning Answer:** *"The frontend is a lightweight SPA hosted on edge CDN. The backend is built with asynchronous FastAPI, handling high-concurrency I/O. The LLM workload is offloaded to Groq's high-throughput LPU cloud, and the database utilizes Supabase's managed PostgreSQL with automatic connection pooling and horizontal read scaling."*
 
 ### Q5: "How does SkillRoute monetize?"
 > **Winning Answer:** *"We have a dual B2C and B2B model:

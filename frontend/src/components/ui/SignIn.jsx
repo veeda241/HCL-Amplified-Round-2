@@ -72,7 +72,9 @@ export const SignIn = () => {
             token: adminRes.data.token,
             timestamp: Date.now()
           }));
-          navigate('/dashboard');
+          // Full reload so App re-reads the just-written admin session from localStorage
+          // (React Router navigation alone wouldn't refresh App's adminUser state on this tab)
+          window.location.href = '/admin/dashboard';
           return;
         }
       } catch {

@@ -7,6 +7,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Profile = lazy(() => import('./pages/Profile'))
 const ProfileSetup = lazy(() => import('./components/ProfileSetup'))
 const AdminLogin = lazy(() => import('./components/ui/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
@@ -76,38 +77,37 @@ function App() {
     return <LoadingScreen />
   }
 
-  const isAuthenticated = user || adminUser
-
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
         {/* Admin routes — no Supabase dependency */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/login" element={adminUser ? <Navigate to="/admin/dashboard" /> : <AdminLogin />} />
+        <Route path="/admin/dashboard" element={adminUser ? <AdminDashboard /> : <Navigate to="/admin/login" />} />
 
-        {/* Student routes — require Supabase auth OR admin session */}
+        {/* Student routes — require Supabase auth (admins are routed to /admin/dashboard instead) */}
         <Route
           path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignIn />}
+          element={adminUser ? <Navigate to="/admin/dashboard" /> : user ? <Navigate to="/dashboard" /> : <SignIn />}
         />
         <Route
           path="/signup"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <SignUp />}
+          element={adminUser ? <Navigate to="/admin/dashboard" /> : user ? <Navigate to="/dashboard" /> : <SignUp />}
         />
         <Route
           path="/profile-setup"
-          element={adminUser ? <Navigate to="/dashboard" /> : user ? <ProfileSetup /> : <Navigate to="/login" />}
+          element={adminUser ? <Navigate to="/admin/dashboard" /> : user ? <ProfileSetup /> : <Navigate to="/login" />}
         />
         <Route
           path="/profile"
-          element={adminUser ? <Navigate to="/dashboard" /> : user ? <Profile /> : <Navigate to="/login" />}
+          element={adminUser ? <Navigate to="/admin/dashboard" /> : user ? <Profile /> : <Navigate to="/login" />}
         />
         <Route
           path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+          element={adminUser ? <Navigate to="/admin/dashboard" /> : user ? <Dashboard /> : <Navigate to="/login" />}
         />
         <Route
           path="/"
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
+          element={<Navigate to={adminUser ? "/admin/dashboard" : user ? "/dashboard" : "/login"} />}
         />
       </Routes>
     </Suspense>

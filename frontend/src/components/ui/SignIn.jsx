@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Linkedin, Compass, Moon, Sun } from 'lucide-react';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { supabase, getAccessToken } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './card';
 import { Input } from './input';
@@ -28,9 +27,9 @@ export const SignIn = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  const checkProfileCompletion = async (user) => {
+  const checkProfileCompletion = async () => {
     try {
-      const idToken = await user.getIdToken();
+      const idToken = await getAccessToken();
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
       const response = await axios.get(
@@ -59,7 +58,7 @@ export const SignIn = () => {
     setLoading(true);
 
     try {
-      // Check if this is admin login (bypass Firebase)
+      // Check if this is admin login (bypass Supabase)
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       try {
         const adminRes = await axios.post(`${API_URL}/api/admin/login`, {
@@ -67,23 +66,25 @@ export const SignIn = () => {
           password
         });
         if (adminRes.data.success) {
-          // Store admin session — bypass Firebase entirely
+          // Store admin session — bypass Supabase entirely
           localStorage.setItem('admin_session', JSON.stringify({
             email: adminRes.data.admin_email,
             token: adminRes.data.token,
             timestamp: Date.now()
           }));
-          navigate('/dashboard');
+          // Full reload so App re-reads the just-written admin session from localStorage
+          // (React Router navigation alone wouldn't refresh App's adminUser state on this tab)
+          window.location.href = '/admin/dashboard';
           return;
         }
       } catch {
-        // Not admin credentials — continue with Firebase sign-in
+        // Not admin credentials — continue with Supabase sign-in
       }
 
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
 
-      const hasProfile = await checkProfileCompletion(user);
+      const hasProfile = await checkProfileCompletion();
 
       if (hasProfile) {
         navigate('/dashboard');
@@ -102,20 +103,14 @@ export const SignIn = () => {
     setLoading(true);
 
     try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      const hasProfile = await checkProfileCompletion(user);
-
-      if (hasProfile) {
-        navigate('/dashboard');
-      } else {
-        navigate('/profile-setup');
-      }
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: `${window.location.origin}/dashboard` }
+      });
+      if (oauthError) throw oauthError;
+      // Browser is redirected to Google; navigation happens on return.
     } catch (err) {
       setError(err.message || 'Failed to sign in with Google.');
-    } finally {
       setLoading(false);
     }
   };

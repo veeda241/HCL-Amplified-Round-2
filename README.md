@@ -34,7 +34,7 @@ SkillRoute uses an **AI decision-making agent** to provide a complete learning j
 
 ## Key Features
 
-SkillRoute delivers AI-powered career path decisions, personalized learning roadmaps with time and pace-aware planning, Firebase authentication, comprehensive progress tracking, and a modern React-Tailwind interface for an optimal student experience.
+SkillRoute delivers AI-powered career path decisions, personalized learning roadmaps with time and pace-aware planning, Supabase authentication, comprehensive progress tracking, and a modern React-Tailwind interface for an optimal student experience.
 
 ## Tech Stack
 
@@ -45,7 +45,7 @@ SkillRoute delivers AI-powered career path decisions, personalized learning road
 | **FastAPI** | High-performance web framework |
 | **Python 3.8+** | Core programming language |
 | **Groq API** | Large Language Model for AI agents |
-| **Firebase Admin SDK** | Backend authentication and database |
+| **Supabase Python SDK** | Backend authentication and database |
 | **Pydantic** | Data validation and settings management |
 | **python-dotenv** | Environment variable management |
 
@@ -60,8 +60,8 @@ SkillRoute delivers AI-powered career path decisions, personalized learning road
 
 | Service | Purpose |
 |---------|---------|
-| **Firebase Firestore** | NoSQL cloud database |
-| **Firebase Authentication** | User authentication service |
+| **Supabase Postgres** | Relational cloud database |
+| **Supabase Auth** | User authentication service |
 
 
 ## Project Structure
@@ -147,7 +147,9 @@ Create a `.env` file inside `backend/` directory:
 | `PROJECT_NAME` | Application name | SkillRoute |
 | `ENV` | Environment mode | development |
 | `GROQ_API_KEY` | Groq API key for LLM | gsk_... |
-| `FIREBASE_CREDENTIALS` | Firebase service account | path/to/credentials.json |
+| `SUPABASE_URL` | Supabase project URL | https://xxxx.supabase.co |
+| `SUPABASE_ANON_KEY` | Supabase publishable/anon key | sb_publishable_... |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase secret/service-role key | sb_secret_... |
 
 **Example `.env` file:**
 
@@ -155,5 +157,17 @@ Create a `.env` file inside `backend/` directory:
 PROJECT_NAME=SkillRoute
 ENV=development
 GROQ_API_KEY=your_groq_key_here
-FIREBASE_CREDENTIALS=./firebase-credentials.json
+SUPABASE_URL=https://xxxx.supabase.co
+SUPABASE_ANON_KEY=your_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=your_secret_key
+```
+
+Run `backend/supabase_schema.sql` once in the Supabase SQL editor to create the required tables before starting the backend.
+
+The frontend also needs a `.env` file inside `frontend/`:
+
+```env
+VITE_API_URL=http://localhost:8000
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=your_publishable_key
 ```

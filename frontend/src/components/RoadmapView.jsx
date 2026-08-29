@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { getAccessToken } from '../supabaseClient'
 import { CheckCircle2, RefreshCw, Sparkles, Clock, Square, CheckSquare } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '../contexts/ToastContext'
@@ -13,7 +13,7 @@ const RoadmapView = ({ roadmap, onGenerate, onRefresh, loading }) => {
   const handlePhaseToggle = async (index, currentStatus) => {
     setUpdating(true)
     try {
-      const token = await auth.currentUser.getIdToken()
+      const token = await getAccessToken()
       const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
 
       await axios.post(`${API_URL}/api/progress/update`, {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { getAccessToken } from '../supabaseClient'
 import {
   Briefcase, ExternalLink, MapPin, Clock, Building2,
   Loader2, RefreshCw, Tag, Search
@@ -20,7 +20,7 @@ const JobListings = ({ career }) => {
     setLoading(true)
     setError(null)
     try {
-      const token = await auth.currentUser.getIdToken()
+      const token = await getAccessToken()
       const response = await axios.get(`${API_URL}/api/jobs/search`, {
         params: { career: searchCareer, limit: 8 },
         headers: { Authorization: `Bearer ${token}` }

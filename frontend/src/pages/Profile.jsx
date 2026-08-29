@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { getAccessToken } from '../supabaseClient';
 import { useToast } from '../contexts/ToastContext';
 import axios from 'axios';
 import { cache } from '../lib/cache';
@@ -152,7 +152,7 @@ const Profile = () => {
         return;
       }
 
-      const token = await auth.currentUser.getIdToken();
+      const token = await getAccessToken();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
@@ -251,13 +251,12 @@ const Profile = () => {
 
     setIsSubmitting(true);
     try {
-      if (!auth.currentUser) {
+      const token = await getAccessToken();
+      if (!token) {
         toast.error('⚠️ You must be logged in to save your profile');
         navigate('/login');
         return;
       }
-
-      const token = await auth.currentUser.getIdToken();
 
       const profileData = {
         name: formData.name.trim(),

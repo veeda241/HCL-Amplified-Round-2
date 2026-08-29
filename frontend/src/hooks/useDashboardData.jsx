@@ -21,9 +21,10 @@ export const useDashboardData = () => {
         if (adminSession && adminSession.token) {
             return adminSession.token
         }
-        const { auth } = await import('../firebase')
-        if (auth && auth.currentUser) {
-            return await auth.currentUser.getIdToken()
+        const { getAccessToken } = await import('../supabaseClient')
+        const token = await getAccessToken()
+        if (token) {
+            return token
         }
         throw new Error('No authenticated user')
     }
@@ -31,16 +32,21 @@ export const useDashboardData = () => {
     const loadProfile = useCallback(async (signal) => {
         try {
             const token = await getToken()
+            console.log('[Dashboard] Loading profile with token:', token ? 'YES' : 'NULL')
             const response = await axios.get(`${API_URL}/api/students/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal
             })
+            console.log('[Dashboard] Profile API response:', JSON.stringify(response.data).slice(0, 200))
             if (response.data && !response.data.message) {
+                console.log('[Dashboard] Profile found, setting profile state')
                 setProfile(response.data)
+            } else {
+                console.warn('[Dashboard] Profile NOT found — response has message:', response.data?.message)
             }
         } catch (err) {
             if (err.name !== 'CanceledError' && err.code !== 'ECONNABORTED') {
-                console.error('Profile load error:', err)
+                console.error('[Dashboard] Profile load error:', err)
                 setError(prev => ({ ...prev, profile: err.message }))
             }
         }
@@ -160,16 +166,22 @@ export const useDashboardData = () => {
 
     useEffect(() => {
         const controller = new AbortController()
+        let cancelled = false
         setLoading(true)
 
         Promise.all([
             loadProfile(controller.signal),
             loadRoadmap(controller.signal)
         ]).finally(() => {
-            setLoading(false)
+            if (!cancelled) {
+                setLoading(false)
+            }
         })
 
-        return () => controller.abort()
+        return () => {
+            cancelled = true
+            controller.abort()
+        }
     }, [loadProfile, loadRoadmap])
 
     const refreshData = async () => {

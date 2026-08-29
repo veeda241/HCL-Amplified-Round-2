@@ -3,7 +3,7 @@ from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from app.services.storage_service import update_phase_status, get_active_roadmap, save_active_roadmap
 from app.services.roadmap_agent import adapt_roadmap
-from app.utils.auth import verify_firebase_token
+from app.utils.auth import verify_supabase_token
 
 router = APIRouter(
     prefix="/api/progress",
@@ -17,7 +17,7 @@ class ProgressUpdate(BaseModel):
 @router.post("/update")
 def update_progress(
     update: ProgressUpdate,
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(verify_supabase_token)
 ):
     success = update_phase_status(user_id, update.phase_index, update.status)
     if not success:
@@ -27,7 +27,7 @@ def update_progress(
 
 @router.post("/adapt")
 async def adapt_roadmap_route(
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(verify_supabase_token)
 ):
     current_data = await run_in_threadpool(get_active_roadmap, user_id)
     if not current_data:

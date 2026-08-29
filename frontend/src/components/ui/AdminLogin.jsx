@@ -37,7 +37,9 @@ const AdminLogin = () => {
           token: response.data.token,
           timestamp: Date.now()
         }));
-        navigate('/admin/dashboard');
+        // Full reload so App re-reads the just-written admin session from localStorage
+        // (React Router navigation alone wouldn't refresh App's adminUser state on this tab)
+        window.location.href = '/admin/dashboard';
       }
     } catch (err) {
       if (err.response?.status === 401) {

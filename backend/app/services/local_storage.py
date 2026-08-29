@@ -1,6 +1,6 @@
 """
 Local file-based storage fallback.
-Used when Firebase is unavailable. Stores data in JSON files under backend/local_data/.
+Used when Supabase is unavailable. Stores data in JSON files under backend/local_data/.
 """
 import os
 import json

@@ -1,16 +1,22 @@
-import React from 'react';
-import { Compass, User, LogOut, Moon, Sun } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Compass, LogOut, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
-import { getAuth } from 'firebase/auth';
+import { supabase } from '../../supabaseClient';
 
 export function FloatingHeader({ onLogout, userName }) {
 	const navigate = useNavigate();
 	const { theme, toggleTheme } = useTheme();
-	const auth = getAuth();
-	const userInitial = userName?.charAt(0)?.toUpperCase() || auth.currentUser?.email?.charAt(0)?.toUpperCase() || 'U';
+	const [userEmail, setUserEmail] = useState(null);
+
+	useEffect(() => {
+		if (userName) return;
+		supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email || null));
+	}, [userName]);
+
+	const userInitial = userName?.charAt(0)?.toUpperCase() || userEmail?.charAt(0)?.toUpperCase() || 'U';
 
 	return (
 		<header

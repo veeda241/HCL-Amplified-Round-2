@@ -59,6 +59,27 @@ export const SignIn = () => {
     setLoading(true);
 
     try {
+      // Check if this is admin login (bypass Firebase)
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      try {
+        const adminRes = await axios.post(`${API_URL}/api/admin/login`, {
+          email,
+          password
+        });
+        if (adminRes.data.success) {
+          // Store admin session — bypass Firebase entirely
+          localStorage.setItem('admin_session', JSON.stringify({
+            email: adminRes.data.admin_email,
+            token: adminRes.data.token,
+            timestamp: Date.now()
+          }));
+          navigate('/dashboard');
+          return;
+        }
+      } catch {
+        // Not admin credentials — continue with Firebase sign-in
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 

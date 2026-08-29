@@ -28,7 +28,7 @@ FALLBACK_RESOURCES = {
     ],
     "react": [
         {"type": "video", "title": "React JS Full Course", "url": "https://www.youtube.com/watch?v=bMknfKXIFA8", "duration": "12 hours"},
-        {"type": "documentation", "title": "React Official Tutorial – Tic-Tac-Toe", "url": "https://react.dev/learn/tutorial-tic-tac-toe", "duration": "2 hours"},
+        {"type": "documentation", "title": "React Official Tutorial", "url": "https://react.dev/learn/tutorial-tic-tac-toe", "duration": "2 hours"},
         {"type": "course", "title": "freeCodeCamp – Front End Development Libraries", "url": "https://www.freecodecamp.org/learn/front-end-development-libraries/", "duration": "Self-paced"},
     ],
     "html": [
@@ -63,7 +63,7 @@ FALLBACK_RESOURCES = {
     ],
     "node": [
         {"type": "video", "title": "Node.js and Express.js – Full Course", "url": "https://www.youtube.com/watch?v=Oe421EPjeBE", "duration": "8 hours"},
-        {"type": "documentation", "title": "Node.js Official Docs – Getting Started", "url": "https://nodejs.org/en/learn/getting-started/introduction-to-nodejs", "duration": "Self-paced"},
+        {"type": "documentation", "title": "Node.js Official Docs", "url": "https://nodejs.org/en/learn/getting-started/introduction-to-nodejs", "duration": "Self-paced"},
         {"type": "course", "title": "The Odin Project – NodeJS", "url": "https://www.theodinproject.com/paths/full-stack-javascript/courses/nodejs", "duration": "Self-paced"},
     ],
     "git": [
@@ -142,13 +142,11 @@ def _ensure_resources(result: dict) -> dict:
             phase_text = phase.get("phase", "") + " " + focus_skills
             for milestone in phase.get("milestones", []):
                 resources = milestone.get("resources", [])
-                # Filter out resources with bad/empty URLs
                 good_resources = [
                     r for r in resources
                     if isinstance(r.get("url"), str) and r["url"].startswith("http")
                 ]
                 if not good_resources:
-                    # Inject fallback based on milestone or phase context
                     context = milestone.get("name", "") + " " + phase_text
                     milestone["resources"] = _pick_fallback(context)
                     print(f"DEBUG: Injected fallback resources for milestone '{milestone.get('name')}'")
@@ -159,94 +157,30 @@ def _ensure_resources(result: dict) -> dict:
     return result
 
 
-SYSTEM_PROMPT = """You are SkillRoute AgentX — an autonomous AI career guidance agent.
+def _repair_json(content: str) -> str:
+    """Try to repair truncated JSON by closing open brackets/braces."""
+    # Remove trailing incomplete string value
+    content = content.rstrip()
+    # If ends with comma or colon, remove it
+    if content.endswith(",") or content.endswith(":"):
+        content = content[:-1]
+    # Count unclosed brackets
+    opens = content.count("{") - content.count("}")
+    opens_arr = content.count("[") - content.count("]")
+    # Close any incomplete string
+    if content.count('"') % 2 != 0:
+        content += '"'
+    # Close open arrays first, then objects
+    for _ in range(opens_arr):
+        content += "]"
+    for _ in range(opens):
+        content += "}"
+    return content
 
-## YOUR MISSION
-Analyze the student profile and produce:
-1. A career decision with full reasoning
-2. A detailed learning roadmap with REAL, FREE resource links
 
-## CRITICAL RULES — MUST FOLLOW OR RESPONSE IS INVALID
-- Return ONLY raw JSON. NO markdown. NO ```json blocks. NO explanations outside JSON.
-- Every milestone MUST have a "resources" array with 2-3 items.
-- Every resource MUST have a "url" field starting with "https://".
-- NEVER use placeholder URLs like "https://example.com" or "#".
-- ONLY use URLs from: YouTube, freeCodeCamp, MDN, Coursera, Khan Academy, W3Schools, official tech docs, GitHub Skills, The Odin Project, Kaggle.
-
-## RESOURCE EXAMPLES YOU MUST FOLLOW
-Use real URLs exactly like these:
-- https://www.youtube.com/watch?v=rfscVS0vtbw  (Python Beginners)
-- https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/
-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide
-- https://www.coursera.org/learn/machine-learning  (audit for free)
-- https://www.khanacademy.org/computing/computer-programming/sql
-- https://www.w3schools.com/sql/
-- https://react.dev/learn
-- https://docs.python.org/3/tutorial/
-- https://git-scm.com/book/en/v2
-- https://www.theodinproject.com/
-- https://www.kaggle.com/learn/intro-to-machine-learning
-
-## ROADMAP DEPTH
-- 4-6 phases, 2-3 milestones per phase
-- Each milestone: name, description, estimated_hours, resources (2-3 items)
-
-## INPUT PROFILE FIELDS
-name, education, skills, interests, goals, experience, time_per_week, learning_pace, clarity_score
-
-## CLARITY SCORE GUIDE
-- 0-39: Evaluate 5+ careers broadly
-- 40-69: Narrow to 3-4 relevant paths
-- 70-100: Validate direction, optimize path
-
-## REQUIRED JSON FORMAT (NO DEVIATION)
-{
-  "career_decision": {
-    "career": "<title>",
-    "reasoning": "<why this career fits best>",
-    "confidence": <0-100>,
-    "skill_match_percentage": <0-100>,
-    "market_readiness": <0-100>,
-    "industry_demand": "<trending|stable|emerging>",
-    "key_strengths": ["<strength>"],
-    "skill_gaps": ["<gap>"],
-    "time_to_job_ready": "<X months>",
-    "decision_trace": [
-      {"step": "Input Analysis", "detail": "<observations>"},
-      {"step": "Paths Evaluated", "detail": "<paths considered>"},
-      {"step": "Comparison", "detail": "<scoring>"},
-      {"step": "Decision", "detail": "<final reasoning>"},
-      {"step": "Plan Strategy", "detail": "<roadmap approach>"}
-    ],
-    "alternatives": [
-      {"career": "<alt>", "match_score": <0-100>, "reason": "<why good>", "rejection_reason": "<why not chosen>"}
-    ]
-  },
-  "learning_roadmap": {
-    "duration_months": <number>,
-    "roadmap": [
-      {
-        "phase": "Phase 1: <Title>",
-        "duration": "<X-Y weeks>",
-        "difficulty": "<beginner|intermediate|advanced>",
-        "focus_skills": ["skill1"],
-        "outcomes": ["outcome1"],
-        "milestones": [
-          {
-            "name": "<milestone>",
-            "description": "<what to achieve>",
-            "estimated_hours": <number>,
-            "resources": [
-              {"type": "<video|course|documentation|project>", "title": "<title>", "url": "https://...", "duration": "<est>"},
-              {"type": "<video|course|documentation|project>", "title": "<title>", "url": "https://...", "duration": "<est>"}
-            ]
-          }
-        ],
-        "prerequisites": ["<prereq>"]
-      }
-    ]
-  }
-}"""
+SYSTEM_PROMPT = """Analyze student profile. Return ONLY raw JSON, no markdown.
+{"career_decision":{"career":"<title>","reasoning":"<1-2 sentences>","confidence":<0-100>,"skill_match_percentage":<0-100>,"market_readiness":<0-100>,"industry_demand":"<trending|stable|emerging>","key_strengths":["<short>"],"skill_gaps":["<short>"],"time_to_job_ready":"<X months>","decision_trace":[{"step":"Analysis","detail":"<1 sentence>"},{"step":"Paths","detail":"<1 sentence>"},{"step":"Decision","detail":"<1 sentence>"}],"alternatives":[{"career":"<alt>","match_score":<0-100>,"reason":"<short>"}]},"learning_roadmap":{"duration_months":<num>,"roadmap":[{"phase":"Phase N: <Title>","duration":"X-Y weeks","difficulty":"<beginner|intermediate|advanced>","focus_skills":["s"],"outcomes":["o"],"milestones":[{"name":"<short>","description":"<1 sentence>","estimated_hours":<num>,"resources":[{"type":"<video|course|documentation>","title":"<title>","url":"https://real-url","duration":"Xh"}]}],"prerequisites":["<p>"]}]}}
+Rules: 4 phases, 2 milestones each, 2 resources each. URLs must be real (YouTube, freeCodeCamp, MDN, Coursera, Khan Academy, W3Schools, official docs). Keep ALL text fields short."""
 
 
 async def generate_roadmap(profile: dict) -> dict:
@@ -257,13 +191,13 @@ async def generate_roadmap(profile: dict) -> dict:
         try:
             client = _get_client()
             response = await client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-20b",
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(profile)}
                 ],
                 temperature=0.7,
-                max_completion_tokens=8000,
+                max_completion_tokens=7000,
                 top_p=1,
                 stream=False
             )
@@ -283,13 +217,21 @@ async def generate_roadmap(profile: dict) -> dict:
 
             try:
                 result = json.loads(content)
-                # Always validate and patch resources
                 result = _ensure_resources(result)
                 return result
-            except json.JSONDecodeError as e:
-                print(f"JSON Decode Error: {e}")
-                print(f"Failed Content: {content[:500]}")
-                raise ValueError(f"Roadmap agent returned invalid JSON: {e}")
+            except json.JSONDecodeError:
+                # Try to repair truncated JSON by closing open brackets
+                repaired = _repair_json(content)
+                if repaired:
+                    try:
+                        result = json.loads(repaired)
+                        print("DEBUG: Successfully repaired truncated JSON")
+                        result = _ensure_resources(result)
+                        return result
+                    except json.JSONDecodeError:
+                        pass
+                print(f"JSON Decode Error. Content: {content[:300]}...")
+                raise ValueError("Roadmap agent returned invalid JSON")
 
         except Exception as e:
             error_type = type(e).__name__
@@ -302,50 +244,19 @@ async def generate_roadmap(profile: dict) -> dict:
             await asyncio.sleep(2 ** retry_count)
 
 
-ADAPT_SYSTEM_PROMPT = """You are SkillRoute AgentX — an autonomous AI Roadmap Adapter.
+# Concise adapt prompt
+ADAPT_SYSTEM_PROMPT = """Adapt the student's learning roadmap based on progress data. Return ONLY raw JSON (no markdown).
 
-## CRITICAL RULES
-- Return ONLY raw JSON. NO markdown. NO ```json blocks.
-- Every resource MUST have a "url" field starting with "https://".
-- Use real URLs from: YouTube, freeCodeCamp, MDN, Coursera, Khan Academy, W3Schools, official docs.
+Input has current_roadmap and progress (completed_phases, streak_days, days_since_activity).
 
-Your task:
-- Analyze the student's current roadmap and progress data.
-- If progressing well (high streak): suggest advanced topics or speed up.
-- If stuck (low streak, stalled): add remedial resources or extend timelines.
-- Keep structure consistent but modify future phases.
-- Provide adaptation_reasoning explaining what changed and why.
+Return JSON:
+{"adaptation_reasoning":"<what changed and why>","duration_months":<num>,"roadmap":[{"phase":"Phase N: ...","duration":"...","difficulty":"<beginner|intermediate|advanced>","focus_skills":["skill"],"outcomes":["outcome"],"milestones":[{"name":"...","description":"...","estimated_hours":<num>,"resources":[{"type":"<video|course|documentation>","title":"...","url":"https://...","duration":"..."}]}]}]}
 
-Input JSON:
-{
-  "current_roadmap": { ... },
-  "progress": { "completed_phases": X, "total_phases": Y, "streak_days": Z, "days_since_activity": N }
-}
-
-Return ONLY valid JSON:
-{
-  "adaptation_reasoning": "<brief explanation>",
-  "duration_months": <number>,
-  "roadmap": [
-    {
-      "phase": "Phase X: ...",
-      "duration": "...",
-      "difficulty": "<beginner|intermediate|advanced>",
-      "focus_skills": [...],
-      "outcomes": [...],
-      "milestones": [
-        {
-          "name": "...",
-          "description": "...",
-          "estimated_hours": <number>,
-          "resources": [
-            {"type": "<video|course|documentation|project>", "title": "...", "url": "https://...", "duration": "..."}
-          ]
-        }
-      ]
-    }
-  ]
-}"""
+Rules:
+- If progressing well: suggest advanced topics or speed up
+- If stuck: add remedial resources or extend timelines
+- Keep structure consistent, modify future phases
+- Every resource URL must start with https:// and be real"""
 
 
 async def adapt_roadmap(current_data: dict) -> dict:
@@ -376,13 +287,13 @@ async def adapt_roadmap(current_data: dict) -> dict:
         try:
             client = _get_client()
             response = await client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="openai/gpt-oss-20b",
                 messages=[
                     {"role": "system", "content": ADAPT_SYSTEM_PROMPT},
                     {"role": "user", "content": json.dumps(input_data)}
                 ],
                 temperature=0.7,
-                max_completion_tokens=8000,
+                max_completion_tokens=7000,
                 top_p=1,
                 stream=False
             )

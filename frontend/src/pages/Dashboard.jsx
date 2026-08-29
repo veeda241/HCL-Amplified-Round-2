@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import { signOut } from 'firebase/auth'
-import { auth } from '../firebase'
 import { useNavigate } from 'react-router-dom'
 import RoadmapView from '../components/RoadmapView'
 import CareerMatchCard from '../components/CareerMatchCard'
@@ -46,7 +44,18 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth)
+      // Clear admin session if present
+      localStorage.removeItem('admin_session')
+      // Try Firebase signOut (will fail gracefully if not using Firebase)
+      try {
+        const { auth } = await import('../firebase')
+        const { signOut } = await import('firebase/auth')
+        if (auth && auth.currentUser) {
+          await signOut(auth)
+        }
+      } catch {
+        // Firebase not available — that's fine
+      }
       navigate('/login')
     } catch (error) {
       console.error("Logout failed", error)

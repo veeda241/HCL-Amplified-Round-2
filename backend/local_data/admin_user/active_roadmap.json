@@ -1,0 +1,291 @@
+{
+  "career_decision": {
+    "career": "Full-Stack Web Developer",
+    "reasoning": "Strong CS background + Python/JS skills fit full-stack roles",
+    "confidence": 80,
+    "skill_match_percentage": 70,
+    "market_readiness": 85,
+    "industry_demand": "trending",
+    "key_strengths": [
+      "Python",
+      "JavaScript"
+    ],
+    "skill_gaps": [
+      "HTML",
+      "CSS",
+      "Backend frameworks",
+      "Database"
+    ],
+    "time_to_job_ready": "12 months",
+    "decision_trace": [
+      {
+        "step": "Analysis",
+        "detail": "Assessed CS degree and JS/Python skills"
+      },
+      {
+        "step": "Paths",
+        "detail": "Identified full-stack as best fit"
+      },
+      {
+        "step": "Decision",
+        "detail": "Recommend full-stack career"
+      }
+    ],
+    "alternatives": [
+      {
+        "career": "Front-End Developer",
+        "match_score": 65,
+        "reason": "UI focus"
+      },
+      {
+        "career": "Back-End Developer",
+        "match_score": 60,
+        "reason": "Server focus"
+      }
+    ]
+  },
+  "learning_roadmap": {
+    "duration_months": 12,
+    "roadmap": [
+      {
+        "phase": "Phase 1: Foundations",
+        "duration": "10-12 weeks",
+        "difficulty": "beginner",
+        "focus_skills": [
+          "HTML",
+          "CSS",
+          "JS basics"
+        ],
+        "outcomes": [
+          "Basic web pages"
+        ],
+        "milestones": [
+          {
+            "name": "HTML/CSS Intro",
+            "description": "Learn markup & styling",
+            "estimated_hours": 30,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp Responsive Web Design",
+                "url": "https://www.youtube.com/watch?v=UB1O30fR-EE",
+                "duration": "2h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp HTML & CSS",
+                "url": "https://www.freecodecamp.org/learn/responsive-web-design",
+                "duration": "4h"
+              }
+            ]
+          },
+          {
+            "name": "JS Basics",
+            "description": "Core JS concepts",
+            "estimated_hours": 30,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp JavaScript Tutorial",
+                "url": "https://www.youtube.com/watch?v=W6NZfCOO6Ls",
+                "duration": "3h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp JS Algorithms",
+                "url": "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures",
+                "duration": "4h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [],
+        "status": "pending",
+        "completed_at": null
+      },
+      {
+        "phase": "Phase 2: Front-End",
+        "duration": "10-12 weeks",
+        "difficulty": "intermediate",
+        "focus_skills": [
+          "React",
+          "State"
+        ],
+        "outcomes": [
+          "Interactive UI"
+        ],
+        "milestones": [
+          {
+            "name": "React Basics",
+            "description": "Build components",
+            "estimated_hours": 35,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp React Course",
+                "url": "https://www.youtube.com/watch?v=Ke90Tje7VS0",
+                "duration": "3h"
+              },
+              {
+                "type": "course",
+                "title": "Coursera React Specialization",
+                "url": "https://www.coursera.org/specializations/react",
+                "duration": "6h"
+              }
+            ]
+          },
+          {
+            "name": "State Mgmt",
+            "description": "Manage app state",
+            "estimated_hours": 30,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp Redux",
+                "url": "https://www.youtube.com/watch?v=93p3LxR9xfM",
+                "duration": "2h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp Redux",
+                "url": "https://www.freecodecamp.org/learn/front-end-libraries/react-and-redux",
+                "duration": "4h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [
+          "HTML",
+          "CSS",
+          "JS basics"
+        ],
+        "status": "pending",
+        "completed_at": null
+      },
+      {
+        "phase": "Phase 3: Back-End",
+        "duration": "10-12 weeks",
+        "difficulty": "intermediate",
+        "focus_skills": [
+          "Node.js",
+          "Express",
+          "DB"
+        ],
+        "outcomes": [
+          "Server APIs"
+        ],
+        "milestones": [
+          {
+            "name": "Node & Express",
+            "description": "Create REST APIs",
+            "estimated_hours": 35,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp Node APIs",
+                "url": "https://www.youtube.com/watch?v=TlB_eWDSMt4",
+                "duration": "3h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp APIs & Microservices",
+                "url": "https://www.freecodecamp.org/learn/apis-and-microservices",
+                "duration": "5h"
+              }
+            ]
+          },
+          {
+            "name": "Database Basics",
+            "description": "Persist data",
+            "estimated_hours": 30,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp MongoDB",
+                "url": "https://www.youtube.com/watch?v=-56x56UppqQ",
+                "duration": "2h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp SQL",
+                "url": "https://www.freecodecamp.org/learn/relational-database",
+                "duration": "4h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [
+          "React Basics",
+          "State Mgmt"
+        ],
+        "status": "pending",
+        "completed_at": null
+      },
+      {
+        "phase": "Phase 4: Full-Stack Integration",
+        "duration": "10-12 weeks",
+        "difficulty": "advanced",
+        "focus_skills": [
+          "Full-Stack App",
+          "Deployment"
+        ],
+        "outcomes": [
+          "Deployable app"
+        ],
+        "milestones": [
+          {
+            "name": "Project Setup",
+            "description": "Build full-stack app",
+            "estimated_hours": 40,
+            "resources": [
+              {
+                "type": "video",
+                "title": "freeCodeCamp Full Stack Project",
+                "url": "https://www.youtube.com/watch?v=U3wG3gT4w4E",
+                "duration": "4h"
+              },
+              {
+                "type": "course",
+                "title": "freeCodeCamp Full Stack",
+                "url": "https://www.freecodecamp.org/learn/back-end-development-and-apis",
+                "duration": "6h"
+              }
+            ]
+          },
+          {
+            "name": "Deployment",
+            "description": "Host app online",
+            "estimated_hours": 25,
+            "resources": [
+              {
+                "type": "video",
+                "title": "Deploy to Heroku",
+                "url": "https://www.youtube.com/watch?v=Z1ZlX1kY9a8",
+                "duration": "2h"
+              },
+              {
+                "type": "documentation",
+                "title": "Heroku Docs",
+                "url": "https://devcenter.heroku.com/articles/getting-started-with-node",
+                "duration": "1h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [
+          "Node & Express",
+          "Database Basics"
+        ],
+        "status": "pending",
+        "completed_at": null
+      }
+    ]
+  },
+  "progress": {
+    "completed_phases": 0,
+    "total_phases": 4,
+    "streak_days": 0,
+    "last_activity_date": null
+  },
+  "updated_at": "2026-08-29T05:10:51.466442"
+}

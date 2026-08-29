@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { auth } from '../firebase'
 import { useToast } from '../contexts/ToastContext'
 import axios from 'axios'
 import { Bot } from 'lucide-react'
@@ -17,9 +16,21 @@ export const useDashboardData = () => {
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+    const getToken = async () => {
+        const adminSession = JSON.parse(localStorage.getItem('admin_session') || 'null')
+        if (adminSession && adminSession.token) {
+            return adminSession.token
+        }
+        const { auth } = await import('../firebase')
+        if (auth && auth.currentUser) {
+            return await auth.currentUser.getIdToken()
+        }
+        throw new Error('No authenticated user')
+    }
+
     const loadProfile = useCallback(async (signal) => {
         try {
-            const token = await auth.currentUser.getIdToken()
+            const token = await getToken()
             const response = await axios.get(`${API_URL}/api/students/profile`, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal
@@ -37,7 +48,7 @@ export const useDashboardData = () => {
 
     const loadRoadmap = useCallback(async (signal) => {
         try {
-            const token = await auth.currentUser.getIdToken()
+            const token = await getToken()
             const response = await axios.get(`${API_URL}/api/career/roadmap`, {
                 headers: { Authorization: `Bearer ${token}` },
                 signal
@@ -86,7 +97,7 @@ export const useDashboardData = () => {
         setIsGenerating(true)
         setGenerationMode('generate')
         try {
-            const token = await auth.currentUser.getIdToken()
+            const token = await getToken()
             const response = await axios.post(`${API_URL}/api/career/roadmap`, profile, {
                 headers: { Authorization: `Bearer ${token}` }
             })
@@ -109,7 +120,7 @@ export const useDashboardData = () => {
         setIsGenerating(true)
         setGenerationMode('adapt')
         try {
-            const token = await auth.currentUser.getIdToken()
+            const token = await getToken()
             await axios.post(`${API_URL}/api/progress/adapt`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             })
@@ -132,7 +143,7 @@ export const useDashboardData = () => {
     const resetCareerPath = async () => {
         setLoading(true)
         try {
-            const token = await auth.currentUser.getIdToken()
+            const token = await getToken()
             await axios.delete(`${API_URL}/api/career/roadmap`, {
                 headers: { Authorization: `Bearer ${token}` }
             })

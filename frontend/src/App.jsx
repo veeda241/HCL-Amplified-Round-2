@@ -46,6 +46,12 @@ function App() {
       .then(({ supabase }) => {
         if (cancelled) return
 
+        if (!supabase) {
+          // Supabase not configured — app still works for admin routes
+          if (!cancelled) setLoading(false)
+          return
+        }
+
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (!cancelled) {
             setUser(session?.user ?? null)

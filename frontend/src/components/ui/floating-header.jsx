@@ -1,23 +1,22 @@
-import { } from 'react';
+import { useState, useEffect } from 'react';
 import { Compass, LogOut, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
-import { supabase } from '../../supabase';
+import { supabase } from '../../supabaseClient';
 
 export function FloatingHeader({ onLogout, userName }) {
 	const navigate = useNavigate();
 	const { theme, toggleTheme } = useTheme();
-	// Get user initial from Supabase session
-	const [userInitial, setUserInitial] = React.useState(userName?.charAt(0)?.toUpperCase() || 'U');
-	React.useEffect(() => {
-		if (!userName) {
-			supabase.auth.getUser().then(({ data: { user } }) => {
-				if (user?.email) setUserInitial(user.email.charAt(0).toUpperCase());
-			});
-		}
+	const [userEmail, setUserEmail] = useState(null);
+
+	useEffect(() => {
+		if (userName) return;
+		supabase.auth.getUser().then(({ data }) => setUserEmail(data.user?.email || null));
 	}, [userName]);
+
+	const userInitial = userName?.charAt(0)?.toUpperCase() || userEmail?.charAt(0)?.toUpperCase() || 'U';
 
 	return (
 		<header

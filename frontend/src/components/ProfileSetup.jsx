@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../supabase';
+import { getAccessToken } from '../supabaseClient';
 import axios from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -36,7 +36,7 @@ import {
   Clock,
   Zap,
   Target,
-
+  HelpCircle,
   Gauge,
   Rocket
 } from 'lucide-react';
@@ -178,7 +178,7 @@ const ProfileSetup = () => {
   const [customInterest, setCustomInterest] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || '';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const steps = [
     { title: 'Clarity Check', description: 'How clear are you on your career?' },
@@ -266,12 +266,14 @@ const ProfileSetup = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      let token = null;
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        token = session?.access_token || null;
-      } catch {
-        // Not logged in — backend will use demo_user
+      const idToken = await getAccessToken();
+      console.log('[ProfileSetup] Access token obtained:', idToken ? 'YES' : 'NULL');
+
+      if (!idToken) {
+        console.error('[ProfileSetup] No access token — user session may have expired');
+        alert('Session expired. Please sign in again.');
+        navigate('/login');
+        return;
       }
 
       const profileData = {
@@ -286,18 +288,27 @@ const ProfileSetup = () => {
         clarity_score: clarityResult?.clarity_score || 50,
       };
 
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      console.log('[ProfileSetup] Submitting profile:', profileData);
 
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/api/students/profile`,
         profileData,
-        { headers }
+        {
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
+      console.log('[ProfileSetup] Profile saved successfully:', response.data);
       navigate('/dashboard');
     } catch (error) {
-      alert('Failed to save profile. Please try again.');
+      console.error('[ProfileSetup] Submit error:', error);
+      const detail = error.response?.data?.detail || error.message || 'Unknown error';
+      console.error('[ProfileSetup] Error detail:', detail);
+      console.error('[ProfileSetup] Status:', error.response?.status);
+      alert(`Failed to save profile: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }

@@ -15,6 +15,7 @@ import JobListings from '../components/JobListings'
 import { useDashboardData } from '../hooks/useDashboardData.jsx'
 import { Skeleton } from '../components/ui/skeleton'
 import { motion, AnimatePresence } from 'framer-motion'
+import { supabase } from '../supabaseClient'
 
 const Dashboard = () => {
   const {
@@ -42,19 +43,23 @@ const Dashboard = () => {
     return () => window.removeEventListener('triggerAdapt', handleTriggerAdapt)
   }, [])
 
+  // Google OAuth lands here directly (Supabase's redirect-based flow can't
+  // run a profile check before navigating), so gate on profile completeness here.
+  useEffect(() => {
+    const isAdmin = !!JSON.parse(localStorage.getItem('admin_session') || 'null')
+    console.log('[Dashboard] Redirect check — loading:', loading, 'profile:', !!profile, 'isAdmin:', isAdmin)
+    if (!loading && !profile && !isAdmin) {
+      console.warn('[Dashboard] No profile found after loading — redirecting to /profile-setup')
+      navigate('/profile-setup')
+    }
+  }, [loading, profile, navigate])
+
   const handleLogout = async () => {
     try {
       // Clear admin session if present
       localStorage.removeItem('admin_session')
-      // Sign out from Supabase
-      try {
-        const { supabase } = await import('../supabase')
-        await supabase.auth.signOut()
-      } catch {
-        // Supabase sign out failed — that's fine
-      }
-      // No login page — just reload to clear state
-      window.location.reload()
+      await supabase.auth.signOut()
+      navigate('/login')
     } catch (error) {
       console.error("Logout failed", error)
     }

@@ -2,7 +2,12 @@ import os
 import json
 from groq import Groq
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def _get_client():
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY environment variable is not set")
+    return Groq(api_key=api_key)
 
 QUIZ_GENERATE_PROMPT = """
 You are SkillRoute QuizBot — an AI that generates skill assessment questions.
@@ -60,6 +65,7 @@ async def generate_quiz(skills: list) -> dict:
 
     while retry_count < max_retries:
         try:
+            client = _get_client()
             response = client.chat.completions.create(
                 model="openai/gpt-oss-20b",
                 messages=[
@@ -94,17 +100,19 @@ async def evaluate_quiz(questions: list, user_answers: dict) -> dict:
     results = []
 
     for q in questions:
-        q_id = str(q["id"])
+        q_id = str(q.get("id", ""))
         user_answer = user_answers.get(q_id, "")
-        is_correct = user_answer.upper() == q.get("correct_answer", "").upper()
+        correct_answer = q.get("correct_answer", "")
+        is_correct = bool(correct_answer) and user_answer.upper() == correct_answer.upper()
         if is_correct:
             score += 1
         results.append({
-            "id": q["id"],
+            "id": q.get("id"),
             "correct": is_correct,
             "user_answer": user_answer,
-            "correct_answer": q["correct_answer"],
-            "explanation": q.get("explanation", "")
+            "correct_answer": correct_answer,
+            "explanation": q.get("explanation", ""),
+            "skill_tested": q.get("skill_tested", "")
         })
 
     percentage = (score / len(questions)) * 100 if questions else 0
@@ -125,7 +133,7 @@ async def evaluate_quiz(questions: list, user_answers: dict) -> dict:
         "percentage": round(percentage),
         "skill_level": skill_level,
         "results": results,
-        "strengths": [questions[r["id"]-1].get("skill_tested", "") for r in strengths],
-        "areas_to_improve": [questions[r["id"]-1].get("skill_tested", "") for r in weaknesses],
+        "strengths": [r["skill_tested"] for r in strengths],
+        "areas_to_improve": [r["skill_tested"] for r in weaknesses],
         "summary": f"You scored {score}/{len(questions)} ({round(percentage)}%). Your skill level is assessed as {skill_level}."
     }

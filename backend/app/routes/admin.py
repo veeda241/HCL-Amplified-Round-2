@@ -23,7 +23,7 @@ class AdminLoginResponse(BaseModel):
 
 @router.post("/login")
 def admin_login(request: AdminLoginRequest):
-    """Admin login with email/password (no Firebase needed)"""
+    """Admin login with email/password (no Supabase needed)"""
     admin_email = os.getenv("ADMIN_EMAIL", "admin@skillroute.com")
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
 
@@ -44,7 +44,7 @@ def admin_login(request: AdminLoginRequest):
 
 @router.get("/verify")
 def verify_admin(authorization: str = Header(...)):
-    """Verify admin session (no Firebase needed)"""
+    """Verify admin session (no Supabase needed)"""
     token = authorization.split(" ")[1] if authorization.startswith("Bearer ") else ""
     if not verify_admin_session_token(token):
         raise HTTPException(status_code=401, detail="Invalid admin session")
@@ -60,18 +60,22 @@ def get_all_users(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid admin session")
 
     try:
-        # Lazy import to avoid init at startup
+        # Lazy import to avoid Supabase init at startup
         from app.services.storage_service import _use_supabase
         if _use_supabase():
-            from app.utils.firebase import get_client
-            client = get_client()
-            result = client.table('users').select('*').execute()
-            users = result.data if result.data else []
+            from app.utils.supabase_client import get_admin_client
+            db = get_admin_client()
+            res = db.table("profiles").select("*").execute()
+            users = []
+            for row in res.data:
+                user_data = dict(row.get("profile") or {})
+                user_data['id'] = row['user_id']
+                users.append(user_data)
             return {"users": users, "total": len(users)}
         else:
             # Local storage fallback
             from app.services import local_storage as _local
-
+            import json
             data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "local_data")
             users = []
             if os.path.exists(data_dir):
@@ -96,11 +100,11 @@ def get_admin_stats(authorization: str = Header(...)):
     try:
         from app.services.storage_service import _use_supabase
         if _use_supabase():
-            from app.utils.firebase import get_client
-            client = get_client()
-            users_count = len(client.table('users').select('id').execute().data or [])
-            roadmaps_count = len(client.table('roadmaps').select('id').execute().data or [])
-            quizzes_count = 0  # Quizzes table not yet in Supabase schema
+            from app.utils.supabase_client import get_admin_client
+            db = get_admin_client()
+            users_count = len(db.table("profiles").select("user_id").execute().data)
+            roadmaps_count = len(db.table("active_roadmaps").select("user_id").execute().data)
+            quizzes_count = 0  # quiz results are not persisted
         else:
             # Local storage stats
             import os

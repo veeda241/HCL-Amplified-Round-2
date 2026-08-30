@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.models.student import StudentProfile
 from app.services.storage_service import get_student_profile, save_student_profile
-from app.utils.auth import get_optional_user
+from app.utils.auth import verify_supabase_token
 
 router = APIRouter(
     prefix="/api/students",
@@ -9,19 +9,23 @@ router = APIRouter(
 )
 
 @router.get("/profile")
-def get_profile(user_id: str = Depends(get_optional_user)):
+def get_profile(user_id: str = Depends(verify_supabase_token)):
     try:
+        print(f"[GET /profile] Looking up profile for user_id: {user_id}")
         profile = get_student_profile(user_id)
         if not profile:
+            print(f"[GET /profile] No profile found for user_id: {user_id}")
             return {"message": "No profile found"}
+        print(f"[GET /profile] Found profile for user_id: {user_id} — name: {profile.get('name', '?')}")
         return profile
     except Exception as e:
+        print(f"[GET /profile] ERROR for user_id {user_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/profile")
 def save_profile(
     profile: StudentProfile,
-    user_id: str = Depends(get_optional_user)
+    user_id: str = Depends(verify_supabase_token)
 ):
     try:
         print(f"Saving profile for user: {user_id}")

@@ -4,5 +4,3 @@ python-dotenv
 pydantic
 groq
 supabase
-PyJWT
-requests

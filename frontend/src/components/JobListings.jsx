@@ -1,36 +1,29 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
-import { supabase } from '../supabase'
+import { getAccessToken } from '../supabaseClient'
 import {
   Briefcase, ExternalLink, MapPin, Clock, Building2,
   Loader2, RefreshCw, Tag, Search
 } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || ''
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const JobListings = ({ career }) => {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const fetchJobs = async (searchCareer) => {
     if (!searchCareer) return
     setLoading(true)
     setError(null)
     try {
-      let token = null
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        token = session?.access_token
-      } catch {
-        // Not logged in
-      }
-      const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const token = await getAccessToken()
       const response = await axios.get(`${API_URL}/api/jobs/search`, {
         params: { career: searchCareer, limit: 8 },
-        headers
+        headers: { Authorization: `Bearer ${token}` }
       })
       setJobs(response.data.jobs || [])
       setSearchTerm(response.data.search_term || searchCareer)
@@ -46,7 +39,6 @@ const JobListings = ({ career }) => {
     if (career) {
       fetchJobs(career)
     }
-
   }, [career])
 
   const formatDate = (dateStr) => {
@@ -82,7 +74,7 @@ const JobListings = ({ career }) => {
                 Live Job Openings
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Real-time from Remotive • Matching &quot;{career}&quot;
+                Real-time from Remotive • Matching "{career}"
               </p>
             </div>
           </div>

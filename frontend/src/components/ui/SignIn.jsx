@@ -64,7 +64,7 @@ export const SignIn = () => {
         const adminRes = await axios.post(`${API_URL}/api/admin/login`, {
           email,
           password
-        });
+        }, { timeout: 10000 });
         if (adminRes.data.success) {
           // Store admin session — bypass Supabase entirely
           localStorage.setItem('admin_session', JSON.stringify({
@@ -77,6 +77,10 @@ export const SignIn = () => {
         }
       } catch {
         // Not admin credentials — continue with Supabase sign-in
+      }
+
+      if (!supabase) {
+        throw new Error('Authentication is not configured. Please contact admin.');
       }
 
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -101,6 +105,9 @@ export const SignIn = () => {
     setLoading(true);
 
     try {
+      if (!supabase) {
+        throw new Error('Authentication is not configured. Please contact admin.');
+      }
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}/dashboard` }

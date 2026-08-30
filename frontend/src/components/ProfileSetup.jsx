@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import axios from 'axios';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -178,7 +178,7 @@ const ProfileSetup = () => {
   const [customInterest, setCustomInterest] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   const steps = [
     { title: 'Clarity Check', description: 'How clear are you on your career?' },
@@ -266,14 +266,13 @@ const ProfileSetup = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const user = auth.currentUser;
-      if (!user) {
-        alert('Please sign in to save your profile');
-        navigate('/signin');
-        return;
+      let token = null;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || null;
+      } catch {
+        // Not logged in — backend will use demo_user
       }
-
-      const idToken = await user.getIdToken();
 
       const profileData = {
         name: formData.name,
@@ -287,15 +286,13 @@ const ProfileSetup = () => {
         clarity_score: clarityResult?.clarity_score || 50,
       };
 
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       await axios.post(
         `${API_URL}/api/students/profile`,
         profileData,
-        {
-          headers: {
-            'Authorization': `Bearer ${idToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers }
       );
 
       navigate('/dashboard');

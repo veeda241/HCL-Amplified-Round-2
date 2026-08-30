@@ -4,13 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from './button';
 import { cn } from '../../lib/utils';
-import { getAuth } from 'firebase/auth';
+import { supabase } from '../../supabase';
 
 export function FloatingHeader({ onLogout, userName }) {
 	const navigate = useNavigate();
 	const { theme, toggleTheme } = useTheme();
-	const auth = getAuth();
-	const userInitial = userName?.charAt(0)?.toUpperCase() || auth.currentUser?.email?.charAt(0)?.toUpperCase() || 'U';
+	// Get user initial from Supabase session
+	const [userInitial, setUserInitial] = React.useState(userName?.charAt(0)?.toUpperCase() || 'U');
+	React.useEffect(() => {
+		if (!userName) {
+			supabase.auth.getUser().then(({ data: { user } }) => {
+				if (user?.email) setUserInitial(user.email.charAt(0).toUpperCase());
+			});
+		}
+	}, [userName]);
 
 	return (
 		<header

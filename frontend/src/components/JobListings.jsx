@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { supabase } from '../supabase'
 import {
   Briefcase, ExternalLink, MapPin, Clock, Building2,
   Loader2, RefreshCw, Tag, Search
 } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 const JobListings = ({ career }) => {
   const [jobs, setJobs] = useState([])
@@ -20,10 +20,17 @@ const JobListings = ({ career }) => {
     setLoading(true)
     setError(null)
     try {
-      const token = await auth.currentUser.getIdToken()
+      let token = null
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token
+      } catch {
+        // Not logged in
+      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       const response = await axios.get(`${API_URL}/api/jobs/search`, {
         params: { career: searchCareer, limit: 8 },
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       })
       setJobs(response.data.jobs || [])
       setSearchTerm(response.data.search_term || searchCareer)

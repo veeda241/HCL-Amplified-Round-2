@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebase'
+import { supabase } from '../supabase'
 import { useNavigate } from 'react-router-dom'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '../contexts/ThemeContext'
@@ -20,11 +19,13 @@ const Login = () => {
     setLoading(true)
 
     try {
+      let result
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password)
+        result = await supabase.auth.signInWithPassword({ email, password })
       } else {
-        await createUserWithEmailAndPassword(auth, email, password)
+        result = await supabase.auth.signUp({ email, password })
       }
+      if (result.error) throw result.error
       navigate('/dashboard')
     } catch (err) {
       setError(err.message)

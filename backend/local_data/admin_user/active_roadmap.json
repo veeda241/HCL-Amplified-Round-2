@@ -1,99 +1,104 @@
 {
   "career_decision": {
-    "career": "Full-Stack Web Developer",
-    "reasoning": "Strong CS background + Python/JS skills fit full-stack roles",
-    "confidence": 80,
-    "skill_match_percentage": 70,
-    "market_readiness": 85,
+    "career": "Machine Learning Engineer",
+    "reasoning": "Strong Python, ML, SQL background",
+    "confidence": 85,
+    "skill_match_percentage": 75,
+    "market_readiness": 70,
     "industry_demand": "trending",
     "key_strengths": [
       "Python",
-      "JavaScript"
+      "ML",
+      "SQL"
     ],
     "skill_gaps": [
-      "HTML",
-      "CSS",
-      "Backend frameworks",
-      "Database"
+      "Deep Learning",
+      "Model Deployment",
+      "Data Engineering"
     ],
-    "time_to_job_ready": "12 months",
+    "time_to_job_ready": "6 months",
     "decision_trace": [
       {
         "step": "Analysis",
-        "detail": "Assessed CS degree and JS/Python skills"
+        "detail": "Assessed skills vs role"
       },
       {
         "step": "Paths",
-        "detail": "Identified full-stack as best fit"
+        "detail": "Identified core ML path"
       },
       {
         "step": "Decision",
-        "detail": "Recommend full-stack career"
+        "detail": "Recommend ML Engineer"
       }
     ],
     "alternatives": [
       {
-        "career": "Front-End Developer",
-        "match_score": 65,
-        "reason": "UI focus"
+        "career": "Data Scientist",
+        "match_score": 80,
+        "reason": "Similar skill set"
       },
       {
-        "career": "Back-End Developer",
+        "career": "Data Engineer",
+        "match_score": 70,
+        "reason": "Needs more SQL"
+      },
+      {
+        "career": "AI Researcher",
         "match_score": 60,
-        "reason": "Server focus"
+        "reason": "Requires research focus"
       }
     ]
   },
   "learning_roadmap": {
-    "duration_months": 12,
+    "duration_months": 6,
     "roadmap": [
       {
         "phase": "Phase 1: Foundations",
-        "duration": "10-12 weeks",
+        "duration": "6-8 weeks",
         "difficulty": "beginner",
         "focus_skills": [
-          "HTML",
-          "CSS",
-          "JS basics"
+          "Python basics",
+          "Statistics",
+          "SQL"
         ],
         "outcomes": [
-          "Basic web pages"
+          "Solid foundation"
         ],
         "milestones": [
           {
-            "name": "HTML/CSS Intro",
-            "description": "Learn markup & styling",
-            "estimated_hours": 30,
+            "name": "Python Refresher",
+            "description": "Review core concepts",
+            "estimated_hours": 20,
             "resources": [
               {
                 "type": "video",
-                "title": "freeCodeCamp Responsive Web Design",
-                "url": "https://www.youtube.com/watch?v=UB1O30fR-EE",
-                "duration": "2h"
+                "title": "Python for Beginners - freeCodeCamp",
+                "url": "https://www.youtube.com/watch?v=rfscVS0vtbw",
+                "duration": "3h"
               },
               {
-                "type": "course",
-                "title": "freeCodeCamp HTML & CSS",
-                "url": "https://www.freecodecamp.org/learn/responsive-web-design",
-                "duration": "4h"
+                "type": "documentation",
+                "title": "Python Official Docs",
+                "url": "https://docs.python.org/3/",
+                "duration": "1h"
               }
             ]
           },
           {
-            "name": "JS Basics",
-            "description": "Core JS concepts",
-            "estimated_hours": 30,
+            "name": "Intro to Statistics",
+            "description": "Learn descriptive stats",
+            "estimated_hours": 15,
             "resources": [
               {
                 "type": "video",
-                "title": "freeCodeCamp JavaScript Tutorial",
-                "url": "https://www.youtube.com/watch?v=W6NZfCOO6Ls",
-                "duration": "3h"
+                "title": "Statistics for Data Science",
+                "url": "https://www.youtube.com/watch?v=xxYz",
+                "duration": "2h"
               },
               {
                 "type": "course",
-                "title": "freeCodeCamp JS Algorithms",
-                "url": "https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures",
+                "title": "Statistics with Python",
+                "url": "https://www.coursera.org/learn/python-statistics",
                 "duration": "4h"
               }
             ]
@@ -104,177 +109,175 @@
         "completed_at": null
       },
       {
-        "phase": "Phase 2: Front-End",
-        "duration": "10-12 weeks",
+        "phase": "Phase 2: Core ML",
+        "duration": "6-8 weeks",
         "difficulty": "intermediate",
         "focus_skills": [
-          "React",
-          "State"
+          "ML algorithms",
+          "scikit-learn",
+          "pandas"
         ],
         "outcomes": [
-          "Interactive UI"
+          "Model building"
         ],
         "milestones": [
           {
-            "name": "React Basics",
-            "description": "Build components",
-            "estimated_hours": 35,
-            "resources": [
-              {
-                "type": "video",
-                "title": "freeCodeCamp React Course",
-                "url": "https://www.youtube.com/watch?v=Ke90Tje7VS0",
-                "duration": "3h"
-              },
-              {
-                "type": "course",
-                "title": "Coursera React Specialization",
-                "url": "https://www.coursera.org/specializations/react",
-                "duration": "6h"
-              }
-            ]
-          },
-          {
-            "name": "State Mgmt",
-            "description": "Manage app state",
-            "estimated_hours": 30,
-            "resources": [
-              {
-                "type": "video",
-                "title": "freeCodeCamp Redux",
-                "url": "https://www.youtube.com/watch?v=93p3LxR9xfM",
-                "duration": "2h"
-              },
-              {
-                "type": "course",
-                "title": "freeCodeCamp Redux",
-                "url": "https://www.freecodecamp.org/learn/front-end-libraries/react-and-redux",
-                "duration": "4h"
-              }
-            ]
-          }
-        ],
-        "prerequisites": [
-          "HTML",
-          "CSS",
-          "JS basics"
-        ],
-        "status": "pending",
-        "completed_at": null
-      },
-      {
-        "phase": "Phase 3: Back-End",
-        "duration": "10-12 weeks",
-        "difficulty": "intermediate",
-        "focus_skills": [
-          "Node.js",
-          "Express",
-          "DB"
-        ],
-        "outcomes": [
-          "Server APIs"
-        ],
-        "milestones": [
-          {
-            "name": "Node & Express",
-            "description": "Create REST APIs",
-            "estimated_hours": 35,
-            "resources": [
-              {
-                "type": "video",
-                "title": "freeCodeCamp Node APIs",
-                "url": "https://www.youtube.com/watch?v=TlB_eWDSMt4",
-                "duration": "3h"
-              },
-              {
-                "type": "course",
-                "title": "freeCodeCamp APIs & Microservices",
-                "url": "https://www.freecodecamp.org/learn/apis-and-microservices",
-                "duration": "5h"
-              }
-            ]
-          },
-          {
-            "name": "Database Basics",
-            "description": "Persist data",
-            "estimated_hours": 30,
-            "resources": [
-              {
-                "type": "video",
-                "title": "freeCodeCamp MongoDB",
-                "url": "https://www.youtube.com/watch?v=-56x56UppqQ",
-                "duration": "2h"
-              },
-              {
-                "type": "course",
-                "title": "freeCodeCamp SQL",
-                "url": "https://www.freecodecamp.org/learn/relational-database",
-                "duration": "4h"
-              }
-            ]
-          }
-        ],
-        "prerequisites": [
-          "React Basics",
-          "State Mgmt"
-        ],
-        "status": "pending",
-        "completed_at": null
-      },
-      {
-        "phase": "Phase 4: Full-Stack Integration",
-        "duration": "10-12 weeks",
-        "difficulty": "advanced",
-        "focus_skills": [
-          "Full-Stack App",
-          "Deployment"
-        ],
-        "outcomes": [
-          "Deployable app"
-        ],
-        "milestones": [
-          {
-            "name": "Project Setup",
-            "description": "Build full-stack app",
-            "estimated_hours": 40,
-            "resources": [
-              {
-                "type": "video",
-                "title": "freeCodeCamp Full Stack Project",
-                "url": "https://www.youtube.com/watch?v=U3wG3gT4w4E",
-                "duration": "4h"
-              },
-              {
-                "type": "course",
-                "title": "freeCodeCamp Full Stack",
-                "url": "https://www.freecodecamp.org/learn/back-end-development-and-apis",
-                "duration": "6h"
-              }
-            ]
-          },
-          {
-            "name": "Deployment",
-            "description": "Host app online",
+            "name": "Scikit-learn Mastery",
+            "description": "Hands\u2011on ML",
             "estimated_hours": 25,
             "resources": [
               {
                 "type": "video",
-                "title": "Deploy to Heroku",
-                "url": "https://www.youtube.com/watch?v=Z1ZlX1kY9a8",
+                "title": "Machine Learning with scikit-learn",
+                "url": "https://www.youtube.com/watch?v=O8fV3",
+                "duration": "3h"
+              },
+              {
+                "type": "course",
+                "title": "Applied Machine Learning",
+                "url": "https://www.coursera.org/learn/applied-machine-learning",
+                "duration": "6h"
+              }
+            ]
+          },
+          {
+            "name": "Feature Engineering",
+            "description": "Data preprocessing",
+            "estimated_hours": 20,
+            "resources": [
+              {
+                "type": "course",
+                "title": "Feature Engineering",
+                "url": "https://www.freecodecamp.org/news/feature-engineering/",
                 "duration": "2h"
               },
               {
                 "type": "documentation",
-                "title": "Heroku Docs",
-                "url": "https://devcenter.heroku.com/articles/getting-started-with-node",
+                "title": "Pandas Tutorial",
+                "url": "https://www.w3schools.com/python/python_pandas.asp",
                 "duration": "1h"
               }
             ]
           }
         ],
         "prerequisites": [
-          "Node & Express",
-          "Database Basics"
+          "Python basics"
+        ],
+        "status": "pending",
+        "completed_at": null
+      },
+      {
+        "phase": "Phase 3: Advanced ML",
+        "duration": "6-8 weeks",
+        "difficulty": "advanced",
+        "focus_skills": [
+          "Deep Learning",
+          "TensorFlow/PyTorch",
+          "Model evaluation"
+        ],
+        "outcomes": [
+          "Deep learning models"
+        ],
+        "milestones": [
+          {
+            "name": "Deep Learning Basics",
+            "description": "Neural networks",
+            "estimated_hours": 30,
+            "resources": [
+              {
+                "type": "video",
+                "title": "Deep Learning Crash Course",
+                "url": "https://www.youtube.com/watch?v=aircAruvnKk",
+                "duration": "4h"
+              },
+              {
+                "type": "course",
+                "title": "Deep Learning Specialization",
+                "url": "https://www.coursera.org/specializations/deep-learning",
+                "duration": "8h"
+              }
+            ]
+          },
+          {
+            "name": "Model Deployment",
+            "description": "Deploy models",
+            "estimated_hours": 20,
+            "resources": [
+              {
+                "type": "course",
+                "title": "Model Deployment with Flask",
+                "url": "https://www.freecodecamp.org/news/deploy-ml-model/",
+                "duration": "2h"
+              },
+              {
+                "type": "course",
+                "title": "MLOps",
+                "url": "https://www.coursera.org/specializations/mlops",
+                "duration": "6h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [
+          "Core ML"
+        ],
+        "status": "pending",
+        "completed_at": null
+      },
+      {
+        "phase": "Phase 4: Deployment & Portfolio",
+        "duration": "4-6 weeks",
+        "difficulty": "advanced",
+        "focus_skills": [
+          "API development",
+          "Cloud services",
+          "Portfolio building"
+        ],
+        "outcomes": [
+          "Job\u2011ready portfolio"
+        ],
+        "milestones": [
+          {
+            "name": "API with FastAPI",
+            "description": "Create REST endpoints",
+            "estimated_hours": 15,
+            "resources": [
+              {
+                "type": "video",
+                "title": "FastAPI Tutorial",
+                "url": "https://www.youtube.com/watch?v=Z1L2",
+                "duration": "2h"
+              },
+              {
+                "type": "documentation",
+                "title": "FastAPI Docs",
+                "url": "https://fastapi.tiangolo.com/",
+                "duration": "1h"
+              }
+            ]
+          },
+          {
+            "name": "Portfolio Project",
+            "description": "End\u2011to\u2011end ML project",
+            "estimated_hours": 25,
+            "resources": [
+              {
+                "type": "course",
+                "title": "Data Science Capstone",
+                "url": "https://www.coursera.org/learn/data-science-capstone",
+                "duration": "8h"
+              },
+              {
+                "type": "course",
+                "title": "Project Management",
+                "url": "https://www.khanacademy.org/college-careers-more/college-admissions",
+                "duration": "2h"
+              }
+            ]
+          }
+        ],
+        "prerequisites": [
+          "Advanced ML"
         ],
         "status": "pending",
         "completed_at": null
@@ -287,5 +290,5 @@
     "streak_days": 0,
     "last_activity_date": null
   },
-  "updated_at": "2026-08-29T05:10:51.466442"
+  "updated_at": "2026-08-29T09:12:15.394408"
 }

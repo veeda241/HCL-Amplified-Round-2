@@ -4,7 +4,7 @@ from app.models.student import StudentProfile, ClarityAssessment
 from app.services.roadmap_agent import generate_roadmap
 from app.services.storage_service import save_career_analysis, get_active_roadmap
 from app.services.matching_service import generate_career_insights, calculate_clarity_score
-from app.utils.auth import verify_firebase_token
+from app.utils.auth import get_optional_user
 from datetime import datetime
 
 router = APIRouter(
@@ -30,7 +30,7 @@ def assess_clarity(assessment: ClarityAssessment):
 
 
 @router.get("/roadmap")
-def get_current_roadmap(user_id: str = Depends(verify_firebase_token)):
+def get_current_roadmap(user_id: str = Depends(get_optional_user)):
     try:
         roadmap = get_active_roadmap(user_id)
         if not roadmap:
@@ -70,7 +70,7 @@ def get_current_roadmap(user_id: str = Depends(verify_firebase_token)):
 @router.post("/roadmap")
 async def generate_career_roadmap(
     profile: StudentProfile,
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(get_optional_user)
 ):
     try:
         profile_dict = profile.dict()
@@ -105,7 +105,7 @@ async def generate_career_roadmap(
 
 
 @router.get("/insights")
-async def get_career_insights(user_id: str = Depends(verify_firebase_token)):
+async def get_career_insights(user_id: str = Depends(get_optional_user)):
     try:
         roadmap = get_active_roadmap(user_id)
         if not roadmap:
@@ -124,7 +124,7 @@ async def get_career_insights(user_id: str = Depends(verify_firebase_token)):
 
 
 @router.get("/alternatives")
-def get_alternative_careers(user_id: str = Depends(verify_firebase_token)):
+def get_alternative_careers(user_id: str = Depends(get_optional_user)):
     try:
         roadmap = get_active_roadmap(user_id)
         if not roadmap:
@@ -143,7 +143,7 @@ def get_alternative_careers(user_id: str = Depends(verify_firebase_token)):
 
 
 @router.delete("/roadmap")
-def delete_roadmap(user_id: str = Depends(verify_firebase_token)):
+def delete_roadmap(user_id: str = Depends(get_optional_user)):
     try:
         from app.services.storage_service import delete_active_roadmap
 

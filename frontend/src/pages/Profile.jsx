@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 import { useToast } from '../contexts/ToastContext';
 import axios from 'axios';
 import { cache } from '../lib/cache';
@@ -136,13 +136,27 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const toast = useToast();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL || '';
 
   useEffect(() => {
     loadProfile();
 
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getToken = async () => {
+    // Check for admin session first
+    const adminSession = JSON.parse(localStorage.getItem('admin_session') || 'null');
+    if (adminSession?.token) {
+      return adminSession.token;
+    }
+    // Fall back to Supabase session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      return session.access_token;
+    }
+    return null;
+  };
 
   const loadProfile = async () => {
     try {
@@ -154,13 +168,19 @@ const Profile = () => {
         return;
       }
 
-      const token = await auth.currentUser.getIdToken();
+      const token = await getToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
       try {
-        const response = await axios.get(`${API_URL}/api/students/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await axios.get(`${API_URL}/api/students/profile`, {
+          headers,
           signal: controller.signal
         });
 
@@ -253,13 +273,7 @@ const Profile = () => {
 
     setIsSubmitting(true);
     try {
-      if (!auth.currentUser) {
-        toast.error('⚠️ You must be logged in to save your profile');
-        navigate('/login');
-        return;
-      }
-
-      const token = await auth.currentUser.getIdToken();
+      const token = await getToken();
 
       const profileData = {
         name: formData.name.trim(),
@@ -272,11 +286,10 @@ const Profile = () => {
         learning_pace: formData.learning_pace
       };
 
-      await axios.post(`${API_URL}/api/students/profile`, profileData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      const response = await axios.post(`${API_URL}/api/students/profile`, profileData, {
+        headers
       });
 
       // Clear cache when profile is updated

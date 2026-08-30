@@ -1,26 +1,33 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { supabase } from '../supabase'
 import { CheckCircle2, RefreshCw, Sparkles, Clock, Square, CheckSquare } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '../contexts/ToastContext'
 
 const RoadmapView = ({ roadmap, onGenerate, onRefresh, loading }) => {
   const [updating, setUpdating] = useState(false)
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+  const API_URL = import.meta.env.VITE_API_URL || ''
   const toast = useToast()
 
   const handlePhaseToggle = async (index, currentStatus) => {
     setUpdating(true)
     try {
-      const token = await auth.currentUser.getIdToken()
       const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
+      let token = null
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token
+      } catch {
+        // Not logged in — backend will use demo_user
+      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
 
       await axios.post(`${API_URL}/api/progress/update`, {
         phase_index: index,
         status: newStatus
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       })
 
       onRefresh()

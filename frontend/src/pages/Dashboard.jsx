@@ -46,17 +46,15 @@ const Dashboard = () => {
     try {
       // Clear admin session if present
       localStorage.removeItem('admin_session')
-      // Try Firebase signOut (will fail gracefully if not using Firebase)
+      // Sign out from Supabase
       try {
-        const { auth } = await import('../firebase')
-        const { signOut } = await import('firebase/auth')
-        if (auth && auth.currentUser) {
-          await signOut(auth)
-        }
+        const { supabase } = await import('../supabase')
+        await supabase.auth.signOut()
       } catch {
-        // Firebase not available — that's fine
+        // Supabase sign out failed — that's fine
       }
-      navigate('/login')
+      // No login page — just reload to clear state
+      window.location.reload()
     } catch (error) {
       console.error("Logout failed", error)
     }

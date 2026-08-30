@@ -14,11 +14,11 @@ services:
         value: production
       - key: GROQ_API_KEY
         sync: false
-      - key: FIREBASE_PROJECT_ID
+      - key: SUPABASE_URL
         sync: false
-      - key: FIREBASE_PRIVATE_KEY
+      - key: SUPABASE_SERVICE_KEY
         sync: false
-      - key: FIREBASE_CLIENT_EMAIL
+      - key: SUPABASE_JWT_SECRET
         sync: false
       - key: PYTHON_VERSION
         value: 3.11.0

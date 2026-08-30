@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Linkedin, Compass, Moon, Sun } from 'lucide-react';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { supabase } from '../../supabase';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './card';
 import { Input } from './input';
@@ -30,16 +29,17 @@ export const SignUp = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  const checkProfileCompletion = async (user) => {
+  const checkProfileCompletion = async () => {
     try {
-      const idToken = await user.getIdToken();
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
+      const API_URL = import.meta.env.VITE_API_URL || '';
 
       const response = await axios.get(
         `${API_URL}/api/students/profile`,
         {
           headers: {
-            'Authorization': `Bearer ${idToken}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         }
@@ -72,16 +72,20 @@ export const SignUp = () => {
     setLoading(true);
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        if (error.message.includes('already')) {
+          setError('Email already in use. Please sign in instead.');
+        } else if (error.message.includes('weak')) {
+          setError('Password is too weak. Please use a stronger password.');
+        } else {
+          setError(error.message || 'Failed to create account. Please try again.');
+        }
+        return;
+      }
       navigate('/profile-setup');
     } catch (err) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Email already in use. Please sign in instead.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Password is too weak. Please use a stronger password.');
-      } else {
-        setError(err.message || 'Failed to create account. Please try again.');
-      }
+      setError(err.message || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -92,17 +96,14 @@ export const SignUp = () => {
     setLoading(true);
 
     try {
-      const provider = new GoogleAuthProvider();
-      const userCredential = await signInWithPopup(auth, provider);
-      const user = userCredential.user;
-
-      const hasProfile = await checkProfileCompletion(user);
-
-      if (hasProfile) {
-        navigate('/dashboard');
-      } else {
-        navigate('/profile-setup');
-      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+      // After OAuth redirect, checkProfileCompletion will be called
     } catch (err) {
       setError(err.message || 'Failed to sign up with Google.');
     } finally {

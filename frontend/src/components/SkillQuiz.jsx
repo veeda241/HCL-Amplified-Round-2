@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
-import { auth } from '../firebase'
+import { supabase } from '../supabase'
 import { useToast } from '../contexts/ToastContext'
 import {
   Brain, ChevronRight, CheckCircle2, XCircle, Award,
   Loader2, Sparkles, Target, TrendingUp, X
 } from 'lucide-react'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 const SkillQuiz = ({ isOpen, onClose, skills: rawSkills = [] }) => {
   // Normalize skills — could be a string or array
@@ -28,11 +28,18 @@ const SkillQuiz = ({ isOpen, onClose, skills: rawSkills = [] }) => {
   const startQuiz = async () => {
     setStage('loading')
     try {
-      const token = await auth.currentUser.getIdToken()
+      let token = null
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token
+      } catch {
+        // Not logged in
+      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       const response = await axios.post(`${API_URL}/api/quiz/generate`, {
         skills: skills
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       })
       setQuestions(response.data.quiz.questions)
       setCurrentQuestion(0)
@@ -63,12 +70,19 @@ const SkillQuiz = ({ isOpen, onClose, skills: rawSkills = [] }) => {
   const submitQuiz = async () => {
     setIsSubmitting(true)
     try {
-      const token = await auth.currentUser.getIdToken()
+      let token = null
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        token = session?.access_token
+      } catch {
+        // Not logged in
+      }
+      const headers = token ? { Authorization: `Bearer ${token}` } : {}
       const response = await axios.post(`${API_URL}/api/quiz/evaluate`, {
         questions: questions,
         answers: answers
       }, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       })
       setResult(response.data.evaluation)
       setStage('result')

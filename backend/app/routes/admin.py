@@ -60,17 +60,13 @@ def get_all_users(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid admin session")
 
     try:
-        # Lazy import to avoid Firebase init at startup
-        from app.services.storage_service import _use_firebase
-        if _use_firebase():
-            from app.utils.firebase import db
-            users_ref = db.collection('students')
-            docs = users_ref.stream()
-            users = []
-            for doc in docs:
-                user_data = doc.to_dict()
-                user_data['id'] = doc.id
-                users.append(user_data)
+        # Lazy import to avoid init at startup
+        from app.services.storage_service import _use_supabase
+        if _use_supabase():
+            from app.utils.firebase import get_client
+            client = get_client()
+            result = client.table('users').select('*').execute()
+            users = result.data if result.data else []
             return {"users": users, "total": len(users)}
         else:
             # Local storage fallback
@@ -98,12 +94,13 @@ def get_admin_stats(authorization: str = Header(...)):
         raise HTTPException(status_code=401, detail="Invalid admin session")
 
     try:
-        from app.services.storage_service import _use_firebase
-        if _use_firebase():
-            from app.utils.firebase import db
-            users_count = len(list(db.collection('students').stream()))
-            roadmaps_count = len(list(db.collection('roadmaps').stream()))
-            quizzes_count = len(list(db.collection('quizzes').stream()))
+        from app.services.storage_service import _use_supabase
+        if _use_supabase():
+            from app.utils.firebase import get_client
+            client = get_client()
+            users_count = len(client.table('users').select('id').execute().data or [])
+            roadmaps_count = len(client.table('roadmaps').select('id').execute().data or [])
+            quizzes_count = 0  # Quizzes table not yet in Supabase schema
         else:
             # Local storage stats
             import os

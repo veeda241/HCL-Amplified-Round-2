@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.models.student import StudentProfile
 from app.services.storage_service import get_student_profile, save_student_profile
-from app.utils.auth import verify_firebase_token
+from app.utils.auth import get_optional_user
 
 router = APIRouter(
     prefix="/api/students",
@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 @router.get("/profile")
-def get_profile(user_id: str = Depends(verify_firebase_token)):
+def get_profile(user_id: str = Depends(get_optional_user)):
     try:
         profile = get_student_profile(user_id)
         if not profile:
@@ -21,7 +21,7 @@ def get_profile(user_id: str = Depends(verify_firebase_token)):
 @router.post("/profile")
 def save_profile(
     profile: StudentProfile,
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(get_optional_user)
 ):
     try:
         print(f"Saving profile for user: {user_id}")

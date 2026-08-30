@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict
 from app.services.quiz_agent import generate_quiz, evaluate_quiz
-from app.utils.auth import verify_firebase_token
+from app.utils.auth import get_optional_user
 
 router = APIRouter(
     prefix="/api/quiz",
@@ -22,7 +22,7 @@ class QuizEvaluateRequest(BaseModel):
 @router.post("/generate")
 async def generate_skill_quiz(
     request: QuizGenerateRequest,
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(get_optional_user)
 ):
     try:
         if not request.skills or len(request.skills) == 0:
@@ -41,7 +41,7 @@ async def generate_skill_quiz(
 @router.post("/evaluate")
 async def evaluate_skill_quiz(
     request: QuizEvaluateRequest,
-    user_id: str = Depends(verify_firebase_token)
+    user_id: str = Depends(get_optional_user)
 ):
     try:
         result = await evaluate_quiz(request.questions, request.answers)

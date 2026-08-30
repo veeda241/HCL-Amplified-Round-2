@@ -9,10 +9,11 @@ const ProgressTracker = ({ progress, phases }) => {
   const percentage = progress && progress.total_phases > 0 ? Math.round((progress.completed_phases / progress.total_phases) * 100) : 0;
 
   useEffect(() => {
-    if (percentage === 100) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    }
+    if (percentage !== 100) return;
+
+    setShowConfetti(true);
+    const timeoutId = window.setTimeout(() => setShowConfetti(false), 3000);
+    return () => window.clearTimeout(timeoutId);
   }, [percentage]);
 
   if (!progress) return null;

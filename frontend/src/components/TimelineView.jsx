@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { CheckCircle2, Clock, ChevronDown,} from 'lucide-react';
 import { useState } from 'react';
 import MilestoneCard from './MilestoneCard';
 

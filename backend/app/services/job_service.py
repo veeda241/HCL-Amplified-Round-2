@@ -1,5 +1,5 @@
 import httpx
-import asyncio
+
 
 
 REMOTIVE_API_URL = "https://remotive.com/api/remote-jobs"

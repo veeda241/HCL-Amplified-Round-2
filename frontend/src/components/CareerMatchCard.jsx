@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Target, TrendingUp, Zap, ArrowRight } from 'lucide-react';
 import DecisionInsightsModal from './DecisionInsightsModal';
 
-const CareerMatchCard = ({ careerDecision, onViewInsights }) => {
+const CareerMatchCard = ({ careerDecision }) => {
     const [showModal, setShowModal] = useState(false);
 
     if (!careerDecision) {

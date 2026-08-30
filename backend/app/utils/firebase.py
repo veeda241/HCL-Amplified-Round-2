@@ -1,7 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
-import json
+
 
 def _init_firebase():
     if firebase_admin._apps:

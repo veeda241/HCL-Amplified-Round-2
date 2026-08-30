@@ -14,7 +14,7 @@ const LearningOutcomes = ({ careerDecision, progress, roadmap }) => {
   // Calculate skills gained from completed phases
   const skillsGained = []
   if (roadmap?.roadmap) {
-    roadmap.roadmap.forEach((phase, idx) => {
+    roadmap.roadmap.forEach((phase) => {
       if (phase.status === 'completed' && phase.focus_skills) {
         skillsGained.push(...phase.focus_skills)
       }

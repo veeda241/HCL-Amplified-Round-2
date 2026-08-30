@@ -1,5 +1,5 @@
-import React from 'react';
-import { Compass, User, LogOut, Moon, Sun } from 'lucide-react';
+import { } from 'react';
+import { Compass, LogOut, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button } from './button';
